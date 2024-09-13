@@ -130,7 +130,15 @@ protobuf.load(protobufDefinition, function(err, root) {
                     lastFCSState: 0x05,
                     rawErrorCount: 0,
                     cpuUsage: 0.2,
-                    storageCapacity: Math.round(1000 + 10 * Math.random())
+                    storageCapacity: Math.round(1000 + 10 * Math.random()),
+                    IMU: {
+                        accX: 0,
+                        accY: 0,
+                        accZ: 0,
+                        gyroX: 0,
+                        gyroY: 0,
+                        gyroZ: 0
+                    }
                 };
                 break;
             default:
@@ -143,19 +151,26 @@ protobuf.load(protobufDefinition, function(err, root) {
             throw Error(errMsg);
         const message = PayloadPacakge.create(payload);
         const buffer = PayloadPacakge.encode(message).finish();
-        console.log(buffer)
+        console.log(`Encoded size of ${buffer.length} bytes`);
         return buffer;
     }
 
     decodeMessage = (buffer) => {
-        const message = PayloadPacakge.decode(buffer);
-        const object = PayloadPacakge.toObject(message, {
+        const message = PayloadPacakge.toObject(PayloadPacakge.decode(buffer), {
             longs: String,
             enums: String,
-            bytes: String,
-            // see ConversionOptions
         });
-        console.log(object)
+
+        /* TODO check CRC32 */
+
+        if(Versions[message.version] != Versions.Version_1)   {
+            console.error(`Unkown Version ${message.version}`)
+        }
+
+        delete message.crc32;
+        delete message.version;
+
+        console.log(message)
     }
 
     /* self test */

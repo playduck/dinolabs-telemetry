@@ -125,9 +125,9 @@ button:active {
 #info {
     font-size: 0.9em !important;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    column-gap: 0.5rem;
+    column-gap: 0.5em;
 }
 
 #info > div {
@@ -151,7 +151,7 @@ button:active {
     min-width: 6em;
 }
 
-#system-state, #connection, #time, #rocket-state {
+#system-state, #connection, #rocket-state {
     font-weight: 600;
 }
 
@@ -165,7 +165,6 @@ button:active {
 
 .offline #connection::before,
 .offline #system-state::before,
-.offline #time::before,
 .offline #rocket-state::before {
     content: "Offline";
     color: var(--warr-red);

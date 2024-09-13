@@ -86,6 +86,15 @@ message TemperatureSensor {
     float temperature = 2; /* Temperature in degC */
 }
 
+message IMU {
+    float accX = 1;
+    float accY = 2;
+    float accZ = 3;
+    float gyroX = 4;
+    float gyroY = 5;
+    float gyroZ = 6;
+}
+
 message SystemState {
   /* TODO: maybe change states to defined enums */
   uint32 currentPayloadState = 1; /* tbd */
@@ -93,4 +102,5 @@ message SystemState {
   uint32 rawErrorCount = 3;
   float cpuUsage = 4;
   uint32 storageCapacity = 5;
+  IMU IMU = 6;
 }
