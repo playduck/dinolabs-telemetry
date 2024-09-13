@@ -11,8 +11,12 @@ io.on('connection', (socket) => {
   // Handle messages from clients
   socket.on('message', (message) => {
     console.log(`Received message: ${message}`);
-
   });
+
+  socket.on("heartbeat-request", (heartbeatRequestTime) => {
+    socket.emit("heartbeat-response", Date.now());
+  });
+
 });
 
 module.exports = io;

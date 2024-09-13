@@ -8,15 +8,11 @@ import {
 
 import socketClient from './socket-client.js';
 
-const demoMode = true;
+const demoMode = false;
+const demoLoopIntervalMs = 250;
+const uiUpdateLoopIntervalMs = 100;
 
-const chambers = [];
-let imuAccelSparkline;
-let imuGyrolSparkline;
-let tempPlot;
-let tecPlot;
-let powerPlot;
-
+/* scrollback plot count  */
 const experimentHistory = 60;
 const IMUHistory = 60;
 const TempHistory = 60;
@@ -24,6 +20,15 @@ const TECHistory = 60;
 const PowerHistory = 60;
 const LogHistory = 60;
 
+/* pltos */
+const chambers = [];
+let imuAccelSparkline;
+let imuGyrolSparkline;
+let tempPlot;
+let tecPlot;
+let powerPlot;
+
+/* DOM elements */
 let coldSideTopGraph, coldSideTopValue;
 let coldSideBotGraph, coldSideBotValue;
 let hotSideGraph, hotSideValue;
@@ -47,9 +52,6 @@ let mooSync = uPlot.sync("moo");
 const matchSyncKeys = (own, ext) => own === ext;
 const cursorOpts = {
   lock: false,
-  // focus: {
-  //     prox: 16,
-  // },
   sync: {
     key: mooSync.key,
     setSeries: true,
@@ -57,6 +59,8 @@ const cursorOpts = {
   },
 };
 
+/** Auxiliary methods */
+/* get computed style colors from CSS  */
 function getColors() {
   const style = getComputedStyle(document.body);
   Object.keys(colors).forEach((color) => {
@@ -64,6 +68,7 @@ function getColors() {
   });
 }
 
+/* attack-release (ar) curve for all-time-high (ath) bar-chart fader */
 function arcurve(level, ath) {
   let alpha = 1;
   if (level >= ath) {
@@ -75,61 +80,7 @@ function arcurve(level, ath) {
   return alpha * level + (1 - alpha) * ath;
 }
 
-function mixColors(color1, color2, ratio = 0.5) {
-  // Convert hex strings to RGB
-  const rgb1 = hexToRgb(color1);
-  const rgb2 = hexToRgb(color2);
-
-  // Calculate the mixed RGB values
-  const mixedRgb = {
-    r: Math.round(rgb1.r * (1 - ratio) + rgb2.r * ratio),
-    g: Math.round(rgb1.g * (1 - ratio) + rgb2.g * ratio),
-    b: Math.round(rgb1.b * (1 - ratio) + rgb2.b * ratio),
-  };
-
-  // Convert the mixed RGB back to a hex string
-  return rgbToHex(mixedRgb);
-}
-
-// Helper function to convert a hex string to an RGB object
-function hexToRgb(hex) {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
-      }
-    : null;
-}
-
-// Helper function to convert an RGB object to a hex string
-function rgbToHex(rgb) {
-  return `#${((1 << 24) + (rgb.r << 16) + (rgb.g << 8) + rgb.b)
-    .toString(16)
-    .slice(1)}`;
-}
-
-function generateRandomNumbers(count, meanVal, stdDev = 3, axesCount = 1) {
-  let values = Array(axesCount + 1)
-    .fill(0)
-    .map(() => []);
-  for (let i = 0; i < count; i++) {
-    values[0].push(i); // Time axis
-    for (let j = 1; j <= axesCount; j++) {
-      // Generate two random numbers between 0 and 1
-      let u1 = Math.random();
-      let u2 = Math.random();
-      // Use the Box-Muller transform to generate a normally distributed random number
-      let randomVal = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-      // Scale the random number to have the specified mean and standard deviation
-      let scaledVal = Math.round((meanVal + randomVal * stdDev) * 1000) / 1000;
-      values[j].push(scaledVal);
-    }
-  }
-  return values;
-}
-
+/* format a numeric value to append a prefix (+-) and fix and pad it */
 function formatValue(x) {
   let prefix = x >= 0 ? "+" : ""; // automatic prefix for negative values
   let integerPart = Math.abs(x).toFixed(0).padStart(2, "0"); // pad the integer part
@@ -137,6 +88,28 @@ function formatValue(x) {
   return `${prefix}${integerPart}.${decimalPart}`;
 }
 
+/* map a value range onto another */
+function map(input, input_start, input_end, output_start, output_end) {
+  return Math.min(
+    Math.max(
+      output_start +
+        ((output_end - output_start) / (input_end - input_start)) *
+          (input - input_start),
+      output_start
+    ),
+    output_end
+  );
+}
+
+/* initilize all .value elements to read 0 */
+function clearAll() {
+  const elements = [...document.getElementsByClassName("value")];
+  elements.forEach((element) => {
+    element.innerHTML = "+00.00";
+  });
+}
+
+/* add a new Y value(s) to an plot buffer and truncate if it exceeds a size */
 function addAndConfine(data, newY, size) {
   // Check if the data array is valid
   if (
@@ -169,6 +142,69 @@ function addAndConfine(data, newY, size) {
   return newData.map((arr) => arr.slice(-size));
 }
 
+/** DOM manipulation functions */
+/* fill a PowerBlock with values */
+function setPowerBlockValues(id, voltage, current, power) {
+  // Get the power block element
+  const powerBlock = document.getElementById(id);
+
+  // Check if the power block element exists
+  if (powerBlock) {
+    // Get the voltage, current, and power elements
+    const voltageElement = powerBlock.querySelector('.power-list div:nth-child(1) .value');
+    const currentElement = powerBlock.querySelector('.power-list div:nth-child(2) .value');
+    const powerElement = powerBlock.querySelector('.power-list div:nth-child(3) .value');
+
+    // Check if the voltage, current, and power elements exist
+    if (voltageElement && currentElement && powerElement) {
+      // Set the voltage, current, and power values
+      const power = voltage * current;
+      voltageElement.textContent = formatValue(voltage);
+      currentElement.textContent = formatValue(current);
+      powerElement.textContent = formatValue(power);
+    } else {
+      console.error('One or more power block elements not found.');
+    }
+  } else {
+    console.error('Power block element not found.');
+  }
+}
+
+/* add a DOM row to a table */
+function appendTableRow(element, limit, time, type, previousTime) {
+    // Create a new table row element
+    const row = document.createElement('tr');
+
+    // Create three new table cell elements and append them to the row
+    const cell1 = document.createElement('td');
+    cell1.textContent = time.toString();
+    row.appendChild(cell1);
+
+    const cell2 = document.createElement('td');
+    if (previousTime !== undefined) {
+      const delta = time - previousTime;
+      cell2.textContent = `${delta} ms`;
+    } else {
+      cell2.textContent = '';
+    }
+    row.appendChild(cell2);
+
+    const cell3 = document.createElement('td');
+    cell3.textContent = type;
+    row.appendChild(cell3);
+
+    // Append the new row to the element
+    element.insertBefore(row, element.firstChild);
+
+    // If the element has more than the limit number of children, remove the oldest
+    if (element.children.length > limit) {
+      element.removeChild(element.lastChild);
+    }
+
+    return time;
+}
+
+/* genrate experiment chamber DOM and plot */
 function generateChamber(index, parent) {
   // Create the chamber div
   const chamber = document.createElement("div");
@@ -273,13 +309,7 @@ function generateChamber(index, parent) {
   return u;
 }
 
-function clearAll() {
-  const elements = [...document.getElementsByClassName("value")];
-  elements.forEach((element) => {
-    element.innerHTML = "+00.00";
-  });
-}
-
+/* add IMU plot */
 function addIMU(id, sum = false, range) {
   const sparkline = document.getElementById(id);
   function getSize() {
@@ -357,6 +387,7 @@ function addIMU(id, sum = false, range) {
   return u;
 }
 
+/* add Temperature plot */
 function addTemperaturePlot() {
   const element = document.getElementById("temperature-plot");
 
@@ -435,6 +466,7 @@ function addTemperaturePlot() {
   return u;
 }
 
+/* add TEC plot */
 function addTECPlot() {
   const element = document.getElementById("tec-plot");
 
@@ -540,6 +572,7 @@ function addTECPlot() {
   return u;
 }
 
+/* add Power plot */
 function addPowerPlot() {
   const element = document.getElementById("power-plot");
 
@@ -633,90 +666,16 @@ function addPowerPlot() {
   return u;
 }
 
-function map(input, input_start, input_end, output_start, output_end) {
-  return Math.min(
-    Math.max(
-      output_start +
-        ((output_end - output_start) / (input_end - input_start)) *
-          (input - input_start),
-      output_start
-    ),
-    output_end
-  );
-}
-
-function setPowerBlockValues(id, voltage, current, power) {
-  // Get the power block element
-  const powerBlock = document.getElementById(id);
-
-  // Check if the power block element exists
-  if (powerBlock) {
-    // Get the voltage, current, and power elements
-    const voltageElement = powerBlock.querySelector('.power-list div:nth-child(1) .value');
-    const currentElement = powerBlock.querySelector('.power-list div:nth-child(2) .value');
-    const powerElement = powerBlock.querySelector('.power-list div:nth-child(3) .value');
-
-    // Check if the voltage, current, and power elements exist
-    if (voltageElement && currentElement && powerElement) {
-      // Set the voltage, current, and power values
-      const power = voltage * current;
-      voltageElement.textContent = formatValue(voltage);
-      currentElement.textContent = formatValue(current);
-      powerElement.textContent = formatValue(power);
-    } else {
-      console.error('One or more power block elements not found.');
-    }
-  } else {
-    console.error('Power block element not found.');
-  }
-}
-
-function appendTableRow(element, limit, time, type, previousTime) {
-    // Create a new table row element
-    const row = document.createElement('tr');
-
-    // Create three new table cell elements and append them to the row
-    const cell1 = document.createElement('td');
-    cell1.textContent = time.toString();
-    row.appendChild(cell1);
-
-    const cell2 = document.createElement('td');
-    if (previousTime !== undefined) {
-      const delta = time - previousTime;
-      cell2.textContent = `${delta} ms`;
-    } else {
-      cell2.textContent = '';
-    }
-    row.appendChild(cell2);
-
-    const cell3 = document.createElement('td');
-    cell3.textContent = type;
-    row.appendChild(cell3);
-
-    // Append the new row to the element
-    element.insertBefore(row, element.firstChild);
-
-    // If the element has more than the limit number of children, remove the oldest
-    if (element.children.length > limit) {
-      element.removeChild(element.lastChild);
-    }
-
-    return time;
-}
-
-document.addEventListener("DOMContentLoaded", () => {
+function init() {
   getColors();
 
+  /* get DOM elements */
   let coldSideTop = document.getElementById("temp-cold-side-top");
-  coldSideTopGraph = [
-    ...coldSideTop.getElementsByClassName("temperature-bar"),
-  ][0];
+  coldSideTopGraph = [...coldSideTop.getElementsByClassName("temperature-bar"),][0];
   coldSideTopValue = [...coldSideTop.getElementsByClassName("value")][0];
 
   let coldSideBot = document.getElementById("temp-cold-side-bot");
-  coldSideBotGraph = [
-    ...coldSideBot.getElementsByClassName("temperature-bar"),
-  ][0];
+  coldSideBotGraph = [...coldSideBot.getElementsByClassName("temperature-bar"),][0];
   coldSideBotValue = [...coldSideBot.getElementsByClassName("value")][0];
 
   let hotSide = document.getElementById("temp-hot-side");
@@ -725,43 +684,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
   messageLog = document.getElementById("message-scroll-block");
 
+  /* add uPlots */
   const topChambers = document.getElementById("top-chambers");
   const botChambers = document.getElementById("bot-chambers");
   for (let i = 1; i <= 4; i++) {
     mooSync.sub(generateChamber(i, topChambers));
     mooSync.sub(generateChamber(i + 4, botChambers));
   }
-
   chambers.forEach((c) => {
     c.sparkline.setSize(c.sparkline.getSize());
   });
-
   imuAccelSparkline = addIMU("imu-accel", true, [-20, 20]);
   imuGyrolSparkline = addIMU("imu-gyro", false, [-500, 500]);
-
   tempPlot = addTemperaturePlot();
   tecPlot = addTECPlot();
   powerPlot = addPowerPlot();
 
+  /* set all .value items to 0 */
   clearAll();
+}
 
-  socketClient.onConnect();
-  socketClient.onDisconnect();
+document.addEventListener("DOMContentLoaded", () => {
+  init();
+
+  if(!demoMode) {
+  /* setup weboscket hooks  */
 
   socketClient.onMessage((message) => {
-    console.log(`Received message from server: ${message}`);
+    const messageObject = JSON.parse(message)
+    console.log(messageObject)
   });
 
-
-
-  if(demoMode)  {
+  } else  {
     const demoModeIndicator = document.getElementById("demo-mode");
     demoModeIndicator.style.visibility = "visible";
 
     function update() {
       const t = Date.now();
 
-      /* TODO remove */
       chambers.forEach((c, i) => {
         const d =
           Math.round(
@@ -854,7 +814,6 @@ document.addEventListener("DOMContentLoaded", () => {
       coldSideBottomLabel.setValue(formatValue(newTempData[1]));
       hotSideLabel.setValue(formatValue(newTempData[2]));
 
-
       const newTecData = [
         Math.round(
           (Math.random() * 0.1 + 7 + 2 * Math.sin((t / 7000) * 2 * Math.PI + 0)) *
@@ -918,11 +877,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const msg_types = ['Experiment Top', 'Experiment Bottom', 'Temperature', "TEC", "IMU", "Power", "System", "Heartbeat"];
       previousTime = appendTableRow(messageLog, LogHistory, Date.now(),msg_types[(Math.random() * msg_types.length) | 0], previousTime);
-
     }
-    setInterval(update, 250);
+    setInterval(update, demoLoopIntervalMs);
   }
 
+  /* UI update loop */
   setInterval(() => {
     let level = parseFloat(
       getComputedStyle(coldSideTopGraph).getPropertyValue("--level")
@@ -957,7 +916,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `${arcurve(level, athLevel)}%`
     );
 
-    }, 100);
+    }, uiUpdateLoopIntervalMs);
 });
 
 window.addEventListener("resize", (e) => {

@@ -7,8 +7,7 @@ const morgan = require("morgan");
 
 const io = require('./socket');
 const routes = require("./routes");
-const pb = require("./protobuf.js")
-
+const pb = require("./protobuf.js")(io)
 
 // Logging middleware
 app.use(morgan("dev"));
