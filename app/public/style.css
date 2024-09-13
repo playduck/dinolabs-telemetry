@@ -398,6 +398,10 @@ footer {
     background-color: var(--very-light-gray);
 }
 
+#log {
+    overflow: hidden;
+}
+
 #log table  {
     border-collapse: separate;
     border-spacing: 0 0;
