@@ -105,7 +105,6 @@ button:active {
 #name {
     display: flex;
     align-items: center;
-    width: 60vw;
 }
 
 #name-text {
@@ -113,6 +112,19 @@ button:active {
     vertical-align: middle;
     line-height: 80%;
     height: 100%;
+}
+
+#demo-mode {
+    color: var(--warr-red);
+    font-weight: 400;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1rem!important;
+}
+#demo-mode h1 {
+    font-weight: 800;
+    font-size: 2rem!important;
 }
 
 .logo {

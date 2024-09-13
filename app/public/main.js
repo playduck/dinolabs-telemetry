@@ -8,6 +8,8 @@ import {
 
 import socketClient from './socket-client.js';
 
+const demoMode = true;
+
 const chambers = [];
 let imuAccelSparkline;
 let imuGyrolSparkline;
@@ -752,169 +754,174 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-  function update() {
-    const t = Date.now();
+  if(demoMode)  {
+    const demoModeIndicator = document.getElementById("demo-mode");
+    demoModeIndicator.style.visibility = "visible";
 
-    /* TODO remove */
-    chambers.forEach((c, i) => {
-      const d =
+    function update() {
+      const t = Date.now();
+
+      /* TODO remove */
+      chambers.forEach((c, i) => {
+        const d =
+          Math.round(
+            (1 * Math.random() +
+              9 * Math.sin((t / 5000) * i * 2 * Math.PI) +
+              10) *
+              1000
+          ) / 1000;
+
+        c.sparkline.setData(
+          addAndConfine(c.sparkline.data, d, experimentHistory)
+        );
+
+        c.chamber.style.setProperty(
+          "--level",
+          `${100 - Math.min(Math.max((d / 20) * 100, 0), 100)}%`
+        );
+      });
+
+      const newGyroData = [
+        0,0,0
+      ];
+      imuGyrolSparkline.setData(
+        addAndConfine(imuGyrolSparkline.data, newGyroData, IMUHistory)
+      );
+
+      const newAccelData = [
+        0,
+        2,
+        0
+      ];
+
+      newAccelData.push(
+        Math.sqrt(
+          Math.pow(newAccelData[0], 2) +
+            Math.pow(newAccelData[1], 2) +
+            Math.pow(newAccelData[2], 2)
+        )
+      );
+      imuAccelSparkline.setData(
+        addAndConfine(imuAccelSparkline.data, newAccelData, IMUHistory)
+      );
+
+      animate_data(
+        [newAccelData[0], newAccelData[1], newAccelData[2]],
+        [newGyroData[0], newGyroData[1], newGyroData[2]],
+        Date.now() - previousTime
+      );
+
+      const newTempData = [
         Math.round(
-          (1 * Math.random() +
-            9 * Math.sin((t / 5000) * i * 2 * Math.PI) +
-            10) *
+          (Math.random() * 0.2 +
+            20 +
+            2 * Math.sin((t / 7000) * 2 * Math.PI + 0)) *
             1000
-        ) / 1000;
+        ) / 1000,
+        Math.round(
+          (Math.random() * 0.2 +
+            20 +
+            2 * Math.sin((t / 7000) * 2 * Math.PI + Math.PI / 2)) *
+            1000
+        ) / 1000,
+        Math.round(
+          (Math.random() * 2 +
+            50 +
+            15 * Math.cos((t / 7000) * 2 * Math.PI + Math.PI / 4)) *
+            1000
+        ) / 1000,
+      ];
+      tempPlot.setData(addAndConfine(tempPlot.data, newTempData, TempHistory));
 
-      c.sparkline.setData(
-        addAndConfine(c.sparkline.data, d, experimentHistory)
-      );
+      coldSideTopValue.innerText = formatValue(newTempData[0]);
+      coldSideBotValue.innerText = formatValue(newTempData[1]);
+      hotSideValue.innerText = formatValue(newTempData[2]);
 
-      c.chamber.style.setProperty(
+      coldSideTopGraph.style.setProperty(
         "--level",
-        `${100 - Math.min(Math.max((d / 20) * 100, 0), 100)}%`
+        `${map(newTempData[0], 0, 40, 0, 100)}%`
       );
-    });
+      coldSideBotGraph.style.setProperty(
+        "--level",
+        `${map(newTempData[1], 0, 40, 0, 100)}%`
+      );
+      hotSideGraph.style.setProperty(
+        "--level",
+        `${map(newTempData[2], 0, 80, 0, 100)}%`
+      );
 
-    const newGyroData = [
-      0,0,0
-    ];
-    imuGyrolSparkline.setData(
-      addAndConfine(imuGyrolSparkline.data, newGyroData, IMUHistory)
-    );
-
-    const newAccelData = [
-      0,
-      2,
-      0
-    ];
-
-    newAccelData.push(
-      Math.sqrt(
-        Math.pow(newAccelData[0], 2) +
-          Math.pow(newAccelData[1], 2) +
-          Math.pow(newAccelData[2], 2)
-      )
-    );
-    imuAccelSparkline.setData(
-      addAndConfine(imuAccelSparkline.data, newAccelData, IMUHistory)
-    );
-
-    animate_data(
-      [newAccelData[0], newAccelData[1], newAccelData[2]],
-      [newGyroData[0], newGyroData[1], newGyroData[2]],
-      Date.now() - previousTime
-    );
-
-    const newTempData = [
-      Math.round(
-        (Math.random() * 0.2 +
-          20 +
-          2 * Math.sin((t / 7000) * 2 * Math.PI + 0)) *
-          1000
-      ) / 1000,
-      Math.round(
-        (Math.random() * 0.2 +
-          20 +
-          2 * Math.sin((t / 7000) * 2 * Math.PI + Math.PI / 2)) *
-          1000
-      ) / 1000,
-      Math.round(
-        (Math.random() * 2 +
-          50 +
-          15 * Math.cos((t / 7000) * 2 * Math.PI + Math.PI / 4)) *
-          1000
-      ) / 1000,
-    ];
-    tempPlot.setData(addAndConfine(tempPlot.data, newTempData, TempHistory));
-
-    coldSideTopValue.innerText = formatValue(newTempData[0]);
-    coldSideBotValue.innerText = formatValue(newTempData[1]);
-    hotSideValue.innerText = formatValue(newTempData[2]);
-
-    coldSideTopGraph.style.setProperty(
-      "--level",
-      `${map(newTempData[0], 0, 40, 0, 100)}%`
-    );
-    coldSideBotGraph.style.setProperty(
-      "--level",
-      `${map(newTempData[1], 0, 40, 0, 100)}%`
-    );
-    hotSideGraph.style.setProperty(
-      "--level",
-      `${map(newTempData[2], 0, 80, 0, 100)}%`
-    );
-
-    coldSideTopLabel.setValue(formatValue(newTempData[0]));
-    coldSideBottomLabel.setValue(formatValue(newTempData[1]));
-    hotSideLabel.setValue(formatValue(newTempData[2]));
+      coldSideTopLabel.setValue(formatValue(newTempData[0]));
+      coldSideBottomLabel.setValue(formatValue(newTempData[1]));
+      hotSideLabel.setValue(formatValue(newTempData[2]));
 
 
-    const newTecData = [
-      Math.round(
-        (Math.random() * 0.1 + 7 + 2 * Math.sin((t / 7000) * 2 * Math.PI + 0)) *
-          1000
-      ) / 1000,
-      Math.round(
-        (Math.random() * 0.1 + 2 + 1 * Math.sin((t / 10000) * 3 * Math.PI)) *
-          1000
-      ) / 1000,
-      Math.round(
-        (Math.random() * 0.1 + 7 + 2 * Math.cos((t / 7000) * 2 * Math.PI + 0)) *
-          1000
-      ) / 1000,
-      Math.round(
-        (Math.random() * 0.1 + 2 + 1 * Math.cos((t / 10000) * 3 * Math.PI)) *
-          1000
-      ) / 1000,
-      Math.round(
-        (Math.random() * 0.1 +
-          10 +
-          2 * Math.cos((t / 9000) * 2 * Math.PI + 0)) *
-          1000
-      ) / 1000,
-      Math.round(
-        (Math.random() * 0.1 +
-          0.7 +
-          0.3 * Math.cos((t / 11000) * 3 * Math.PI)) *
-          1000
-      ) / 1000,
-    ];
-    tecPlot.setData(addAndConfine(tecPlot.data, newTecData, TECHistory));
-    setPowerBlockValues("tec-top", newTecData[0], newTecData[1]);
-    setPowerBlockValues("tec-bot", newTecData[2], newTecData[3]);
-    setPowerBlockValues("fan", newTecData[4], newTecData[5]);
+      const newTecData = [
+        Math.round(
+          (Math.random() * 0.1 + 7 + 2 * Math.sin((t / 7000) * 2 * Math.PI + 0)) *
+            1000
+        ) / 1000,
+        Math.round(
+          (Math.random() * 0.1 + 2 + 1 * Math.sin((t / 10000) * 3 * Math.PI)) *
+            1000
+        ) / 1000,
+        Math.round(
+          (Math.random() * 0.1 + 7 + 2 * Math.cos((t / 7000) * 2 * Math.PI + 0)) *
+            1000
+        ) / 1000,
+        Math.round(
+          (Math.random() * 0.1 + 2 + 1 * Math.cos((t / 10000) * 3 * Math.PI)) *
+            1000
+        ) / 1000,
+        Math.round(
+          (Math.random() * 0.1 +
+            10 +
+            2 * Math.cos((t / 9000) * 2 * Math.PI + 0)) *
+            1000
+        ) / 1000,
+        Math.round(
+          (Math.random() * 0.1 +
+            0.7 +
+            0.3 * Math.cos((t / 11000) * 3 * Math.PI)) *
+            1000
+        ) / 1000,
+      ];
+      tecPlot.setData(addAndConfine(tecPlot.data, newTecData, TECHistory));
+      setPowerBlockValues("tec-top", newTecData[0], newTecData[1]);
+      setPowerBlockValues("tec-bot", newTecData[2], newTecData[3]);
+      setPowerBlockValues("fan", newTecData[4], newTecData[5]);
 
-    const newPowerData = [
-      Math.round(
-        (Math.random() * 0.1 + 15.2 + 2 * Math.sin((t / 4000) * 2 * Math.PI + 0)) *
-          1000
-      ) / 1000,
-      Math.round(
-        (Math.random() * 0.1 + 2 + 1 * Math.sin((t / 60000) * 3 * Math.PI)) *
-          1000
-      ) / 1000,
-      Math.round(
-        (Math.random() * 0.2 + 35 + 2 * Math.cos((t / 7000) * 2 * Math.PI + 0)) *
-          1000
-      ) / 1000,
-      Math.round(
-        (Math.random() * 0.3 + 1.2 + 1 * Math.cos((t / 80000) * 3 * Math.PI)) *
-          1000
-      ) / 1000,
-    ];
-    powerPlot.setData(
-      addAndConfine(powerPlot.data, newPowerData, PowerHistory)
-    );
-    setPowerBlockValues("RailBat", newPowerData[0], newPowerData[1]);
-    setPowerBlockValues("RailChrgIn", newPowerData[2], newPowerData[3]);
-    batteryVoltageLabel.setValue(formatValue(newPowerData[0]));
-    chargePowerInLabel.setValue(formatValue(newPowerData[2] * newPowerData[3]));
+      const newPowerData = [
+        Math.round(
+          (Math.random() * 0.1 + 15.2 + 2 * Math.sin((t / 4000) * 2 * Math.PI + 0)) *
+            1000
+        ) / 1000,
+        Math.round(
+          (Math.random() * 0.1 + 2 + 1 * Math.sin((t / 60000) * 3 * Math.PI)) *
+            1000
+        ) / 1000,
+        Math.round(
+          (Math.random() * 0.2 + 35 + 2 * Math.cos((t / 7000) * 2 * Math.PI + 0)) *
+            1000
+        ) / 1000,
+        Math.round(
+          (Math.random() * 0.3 + 1.2 + 1 * Math.cos((t / 80000) * 3 * Math.PI)) *
+            1000
+        ) / 1000,
+      ];
+      powerPlot.setData(
+        addAndConfine(powerPlot.data, newPowerData, PowerHistory)
+      );
+      setPowerBlockValues("RailBat", newPowerData[0], newPowerData[1]);
+      setPowerBlockValues("RailChrgIn", newPowerData[2], newPowerData[3]);
+      batteryVoltageLabel.setValue(formatValue(newPowerData[0]));
+      chargePowerInLabel.setValue(formatValue(newPowerData[2] * newPowerData[3]));
 
-    const msg_types = ['Experiment Top', 'Experiment Bottom', 'Temperature', "TEC", "IMU", "Power", "System", "Heartbeat"];
-    previousTime = appendTableRow(messageLog, LogHistory, Date.now(),msg_types[(Math.random() * msg_types.length) | 0], previousTime);
+      const msg_types = ['Experiment Top', 'Experiment Bottom', 'Temperature', "TEC", "IMU", "Power", "System", "Heartbeat"];
+      previousTime = appendTableRow(messageLog, LogHistory, Date.now(),msg_types[(Math.random() * msg_types.length) | 0], previousTime);
 
+    }
+    setInterval(update, 250);
   }
-  setInterval(update, 250);
 
   setInterval(() => {
     let level = parseFloat(
