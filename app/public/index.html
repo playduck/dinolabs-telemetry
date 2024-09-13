@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D.I.N.O.labs Telemetry</title>
+    <meta name="description" content="WARR D.I.N.O.labs Telemetry">
+
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <script type="importmap">
+      {"imports":{
+        "socket.io": "./socket/socket.io",
+        "three": "./three/build/three.module.js",
+        "three/": "./three/",
+        "three.meshline": "./three.meshline"
+    }}</script>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="uPlot.css">
+
+    <link rel="stylesheet" href="dist/uPlot.min.css">
+    <script defer src="dist/uPlot.iife.min.js"></script>
+    <script defer src="dist/placement.min.js"></script>
+
+    <script defer src="tooltip.js"></script>
+    <!-- <script defer src="./three.js"></script> -->
+    <script type="module" defer src="main.js"></script>
+    <!-- <script defer type="module" src="three.js"></script> -->
+
+    <meta name="theme-color" content="#2a60aa">
+    <style id="root">
+        :root {
+            --warr-black: #040404;
+            --warr-blue-1: #2a60aa;
+            --warr-blue-2: #7bb0dd;
+            --warr-blue-3: #a8d8f7;
+
+            --warr-pink: #9A2BAB;
+            --warr-purple: #5916d5;
+
+            --warr-yellow: #E3BD49;
+            --warr-orange: #E39349;
+            --warr-red: #e35d48;
+            --warr-green: #38ca55;
+
+
+            --background: #ffffff;
+            --very-light-gray: #F8F8F8;
+            --light-gray: #e3e3e3;
+            --dark-gray: #404040;
+            --very-dark-gray: #1a1a1a;
+
+            --border: 0.75px;
+            --border-radius: 0.4rem;
+        }
+
+        /* @media (prefers-color-scheme: dark) {
+            :root {
+                --warr-black: #ffffff;
+                --warr-blue-1: #2a60aa;
+                --warr-blue-2: #7bb0dd;
+                --warr-blue-3: #a8d8f7;
+
+                --warr-yellow: #FFEA52;
+                --warr-red: #FF6A52;
+                --warr-green: #52FF75;
+
+                --background: #0e0e0e;
+                --very-light-gray: #181818;
+                --light-gray: #2f2f2f;
+                --dark-gray: #cacaca;
+                --very-dark-gray: #f2f2f2;
+            }
+        } */
+    </style>
+</head>
+<body class="offline">
+    <header id="header">
+        <h1 id="name">
+          <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 45.7">
+            <defs><style>.g{fill:#0761b0;}.g,.h,.i{stroke-width:0px;}.h{fill:#9bdafa;}.i{fill:#6ab2e1;}</style></defs><g
+              id="c"><path class="g"
+                d="m23-.4L.2,22.3l22.8,22.8,22.8-22.8L23-.4Zm0,38.8L6.9,22.3,23,6.2l16,16.1-16,16.1Z" /><polygon
+                class="i"
+                points="33.8 -.4 56.6 22.3 33.8 45.1 30.5 41.7 49.9 22.3 30.5 2.9 33.8 -.4" /><polygon
+                class="i" points="23 10.4 26.3 13.7 17.7 22.3 26.3 30.9 23 34.2 11 22.3 23 10.4" /><polygon
+                class="h"
+                points="28.4 15.8 31.7 19.1 28.6 22.3 31.7 25.5 28.4 28.8 21.9 22.3 28.4 15.8" /><polygon
+                class="h" points="44.6 -.4 67.4 22.3 44.6 45.1 41.3 41.7 60.7 22.3 41.3 2.9 44.6 -.4" /></g>
+          </svg>
+          <span id="name-text">
+            D.I.N.O.labs Telemetry
+          </span>
+        </h1>
+        <div id="info">
+          <div>
+            <label>FCS State</label>
+            <span id="rocket-state"></span>
+          </div>
+          <div>
+            <label>RTT</label>
+            <span id="connection"></span>
+          </div>
+          <div>
+            <label>System State</label>
+            <span id="system-state"></span>
+          </div>
+          <div>
+            <label>System Time</label>
+            <span id="time"></span>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <div data-index="1" id="top-chambers">
+        </div>
+
+        <div data-index="2" id="bot-chambers">
+        </div>
+
+        <div data-index="3" id="canvas-3d"></div>
+        </div>
+        <div data-index="4" id="temperature">
+          <div id="temperature-plot"></div>
+          <div id="temperature-gauges">
+            <div id="temp-cold-side-top">
+              <h5><div class="square" style="background-color: var(--warr-blue-2);"></div>Cold-Side Top</h5>
+              <span class="value"></span>
+              <span class="unit temperature">°C</span>
+              <div class="temperature-bar cold" style="--level: 0%; --ath-level: 0%;">
+                <span>0°C</span>
+                <span>20°C</span>
+                <span>40°C</span>
+              </div>
+            </div>
+            <div id="temp-hot-side">
+              <h5><div class="square" style="background-color: var(--warr-yellow);"></div>Hot-Side</h5>
+              <span class="value"></span>
+              <span class="unit temperature">°C</span>
+              <div class="temperature-bar hot" style="--level: 100%; --ath-level: 0%;">
+                <span>0°C</span>
+                <span>40°C</span>
+                <span>80°C</span>
+              </div>
+            </div>
+            <div id="temp-cold-side-bot">
+              <h5><div class="square" style="background-color: var(--warr-blue-3);"></div>Cold-Side Bottom</h5>
+              <span class="value"></span>
+              <span class="unit temperature">°C</span>
+              <div class="temperature-bar cold" style="--level: 50%; --ath-level: 0%;">
+                <span>0°C</span>
+                <span>20°C</span>
+                <span>40°C</span>
+              </div>
+            </div>
+
+          </div>
+          <div id="tec-plot"></div>
+          <div id="tec-power">
+
+            <section class="power-block" id="tec-top" title="TEC Top">
+              <div class="power-list">
+                <div style="color: var(--warr-pink);">
+                  <span class="value"></span>
+                  <span class="unit voltage">V</span>
+                </div>
+                <div style="color: var(--warr-yellow);">
+                  <span class="value"></span>
+                  <span class="unit current">A</span>
+                </div>
+                <div>
+                  <span class="value"></span>
+                  <span class="unit power">W</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="power-block" id="tec-bot" title="TEC Bot">
+              <div class="power-list">
+                <div style="color: var(--warr-purple);">
+                  <span class="value"></span>
+                  <span class="unit voltage">V</span>
+                </div>
+                <div style="color: var(--warr-orange);">
+                  <span class="value"></span>
+                  <span class="unit current">A</span>
+                </div>
+                <div>
+                  <span class="value"></span>
+                  <span class="unit power">W</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="power-block" id="fan" title="Fan">
+              <div class="power-list">
+                <div style="color: var(--warr-blue-1);">
+                  <span class="value"></span>
+                  <span class="unit voltage">V</span>
+                </div>
+                <div style="color: var(--warr-red);">
+                  <span class="value"></span>
+                  <span class="unit current">A</span>
+                </div>
+                <div>
+                  <span class="value"></span>
+                  <span class="unit power">W</span>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+
+        <div data-index="5" id="power">
+
+          <div id="power-rails">
+
+            <div id="power-state">
+              <div>
+                Power: <span id="power-good">Unknown</span>
+              </div>
+              <div>
+                Charge Source: <span id="charge-src">Unknown</span>
+              </div>
+            </div>
+
+            <section class="power-block" id="Rail12V" title="+12V Rail">
+              <div class="power-list">
+                <div>
+                  <span class="value"></span>
+                  <span class="unit voltage">V</span>
+                </div>
+                <div>
+                  <span class="value"></span>
+                  <span class="unit current">A</span>
+                </div>
+                <div>
+                  <span class="value"></span>
+                  <span class="unit power">W</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="power-block" id="Rail5V" title="+5V Rail">
+              <div class="power-list">
+                <div>
+                  <span class="value"></span>
+                  <span class="unit voltage">V</span>
+                </div>
+                <div>
+                  <span class="value"></span>
+                  <span class="unit current">A</span>
+                </div>
+                <div>
+                  <span class="value"></span>
+                  <span class="unit power">W</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="power-block" id="Rail3V3" title="+3V3 Rail">
+              <div class="power-list">
+                <div>
+                  <span class="value"></span>
+                  <span class="unit voltage">V</span>
+                </div>
+                <div>
+                  <span class="value"></span>
+                  <span class="unit current">A</span>
+                </div>
+                <div>
+                  <span class="value"></span>
+                  <span class="unit power">W</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="power-block" id="RailBat" title="Battery">
+              <div class="power-list">
+                <div style="color: var(--warr-pink)">
+                  <span class="value"></span>
+                  <span class="unit voltage">V</span>
+                </div>
+                <div style="color: var(--warr-red)">
+                  <span class="value"></span>
+                  <span class="unit current">A</span>
+                </div>
+                <div>
+                  <span class="value"></span>
+                  <span class="unit power">W</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="power-block" id="RailChrgOut" title="Chrg Out">
+              <div class="power-list">
+                <div>
+                  <span class="value"></span>
+                  <span class="unit voltage">V</span>
+                </div>
+                <div>
+                  <span class="value"></span>
+                  <span class="unit current">A</span>
+                </div>
+                <div>
+                  <span class="value"></span>
+                  <span class="unit power">W</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="power-block" id="RailChrgIn" title="Chrg In">
+              <div class="power-list">
+                <div style="color: var(--warr-purple)">
+                  <span class="value"></span>
+                  <span class="unit voltage">V</span>
+                </div>
+                <div style="color: var(--warr-orange)">
+                  <span class="value"></span>
+                  <span class="unit current">A</span>
+                </div>
+                <div>
+                  <span class="value"></span>
+                  <span class="unit power">W</span>
+                </div>
+              </div>
+            </section>
+
+          </div>
+          <div id="power-plot"></div>
+        </div>
+
+        <div data-index="6" id="imu">
+          <div id="imu-accel"></div>
+          <div id="imu-gyro"></div>
+        </div>
+        <div data-index="7" id="log">
+          <table>
+            <thead>
+              <tr>
+                <th>UNIX Timestamp</th>
+                <th>Delta Time</th>
+                <th>Message Type</th>
+              </tr>
+            </thead>
+            <tbody id="message-scroll-block">
+            </tbody>
+          </table>
+        </div>
+      </main>
+
+      <footer>
+        <span>
+          2024 WARR spacelabs
+        </span>
+        <div id="snackbar-footer">
+          <span id="snack-title-footer"></span>
+          <span id="snack-body-footer"></span>
+        </div>
+        <svg id="sign" xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 210.9121 88.3112"><defs><style>.d,.e{stroke-width:0px;}.e{fill:var(--background);}</style></defs><g
+            id="c"><path class="d"
+              d="m74.1425,69.9851c0-2.8385-.0862-4.6678.0139-6.4868.6691-12.1573,11.6635-22.6411,23.8035-22.4591,6.9247.1039,12.8172,2.0569,14.9753,9.8074.7184,2.5798,1.7106,2.5151,4.0499.9018,2.7382-1.8884,2.9153-4.6568,3.0644-7.5076.4523-8.6473.8661-17.2967,1.3555-25.9419.2351-4.1534.5084-8.31.9656-12.4429.1775-1.6046.6584-3.2919,1.4542-4.6823.9738-1.7013,3.0673-1.5012,4.0033.2625.4522.852.6916,1.8822.7747,2.8533.3262,3.8108.7425,7.6285.776,11.4468.0759,8.6637-.0893,17.3292-.0868,25.994.0012,4.072.0741,4.0718,4.1618,4.0025.833-.0141,1.6671-.0055,2.499-.0429,10.1722-.4581,18.4268,6.8629,17.5055,18.8762-.9623,12.547-14.8052,23.9592-24.6628,23.742-5.2053-.1147-10.4137-2.4075-11.4483-8.8755-.1044-.6528-.1415-1.3694-.4474-1.9259-.6575-1.1964-1.5763-1.7849-2.7107-.4685-.76.8819-1.3875,1.8887-2.2062,2.7077-5.655,5.6565-12.2526,7.8819-20.4034,6.9269-12.4454-1.4582-23.3729-6.266-33.6297-13.1159-3.7366-2.4955-7.6517-4.7246-11.495-7.0594-3.041-1.8475-3.0271-1.8294-4.2978,1.737-1.2846,3.6056-2.5417,7.2243-3.9635,10.7761-.5459,1.3636-1.3448,2.7103-2.3243,3.7984-2.0197,2.2438-5.0473,2.8285-7.2532,1.6607-2.2026-1.166-3.7089-4.0894-3.0094-6.8335,1.0676-4.1881,2.4434-8.3001,3.7617-12.4209.9534-2.9802,2.1233-5.7212.3357-9.0193-1.2085-2.2296.1135-4.8451,2.324-5.9633,2.6191-1.3248,3.3507-3.5373,4.0539-5.9297,2.4392-8.2984,4.8749-16.5981,7.2494-24.9152,1.0442-3.6577,2.7905-5.6388,4.9664-5.3498,2.1952.2916,3.7019,2.4543,4.1244,6.1499.5954,5.2077-.2728,10.2955-1.4622,15.338-1.0694,4.5336-2.2444,9.0428-3.2776,13.5844-.5025,2.2088.1095,2.7613,2.2952,2.3856,9.156-1.5739,16.0386-9.4451,16.2781-18.2442.3108-11.4154-6.9654-18.365-16.0137-19.8837-8.8629-1.4876-17.9535-1.4032-26.4628,2.661-5.3712,2.5654-9.9906,5.9858-13.1762,11.1109-3.5186,5.6609-2.7282,9.6704,2.7109,13.6183,1.1033.8008,2.5908,1.6003,1.8047,3.0528-.5257.9714-1.9642,1.8002-3.1211,2.0177-4.8354.909-10.6275-3.7725-11.6319-9.5137C-.4558,31.6211.0219,27.0636,2.6713,22.8489,9.2898,12.3201,19.0189,6.4557,30.9539,4.075c6.3908-1.2748,12.8804-1.4698,19.3774-.371,17.0659,2.8862,29.2105,17.9804,24.9712,36.6007-1.6019,7.0361-6.0433,12.5294-11.9378,16.7451-.9478.6779-1.9439,1.2893-2.9279,1.9155-1.1845.7538-1.108,1.6287-.0498,2.3115,4.3134,2.7832,8.6706,5.4984,13.7555,8.7083Z" /><path
+              class="d"
+              d="m193.0041,63.7206c-1.1518,3.0746-2.3058,6.1484-3.4546,9.2242-.7558,2.0237-1.3149,4.1473-2.2943,6.0557-2.1746,4.2375-5.8064,5.4735-9.9763,3.1072-1.8617-1.0565-2.7662-.8467-4.2036.502-3.5576,3.338-7.8066,4.6499-12.3811,2.4774-4.436-2.1067-6.455-5.935-6.6491-10.8806-.4117-10.4888,1.7911-20.4847,5.3488-30.2559.0568-.1561.1196-.3105.189-.4614.8535-1.8545,1.74-3.7383,4.2443-3.5302,1.9243.1599,3.0245,2.052,2.9519,5.068-.1521,6.3199-.3823,12.6379-.5413,18.9576-.0376,1.4953-.0238,3.0073.1604,4.4875.1303,1.0463.5878,2.052.8992,3.0758.9172-.6424,1.8824-1.2268,2.7421-1.9386,2.1793-1.8045,3.2572-4.1469,3.2548-6.9911-.003-3.6592.0274-7.3184.0328-10.9776.006-4.0919,1.2357-6.3087,3.7505-6.7301,2.7887-.4673,4.8804,1.4029,5.9322,5.4552.4433,1.7078.6838,3.4682,1.1496,5.8999,1.0731-1.183,1.662-1.8819,2.3033-2.5289,1.2809-1.292,2.4351-2.7849,3.9167-3.7891,5.0264-3.4066,10.2607-2.2551,12.9971,3.1529,1.4737,2.9124,2.2293,6.2361,2.9941,9.4491,1.5376,6.4599,2.788,12.9878,4.2969,19.455.9369,4.0159-.838,6.0387-4.9763,5.286-2.9563-.5377-5.4104-2.0993-6.6065-4.8234-1.5245-3.4719-2.7489-7.1008-3.7901-10.7511-.7238-2.5377-.9212-5.2254-1.3538-7.8461-.3122-.0498-.6245-.0997-.9367-.1495Z" /><path
+              class="d"
+              d="m168.215,23.6116c-.141,3.3443-4.7095,8.2449-7.986,8.5665-3.5718.3506-6.7677-3.7999-5.7456-7.4615.8999-3.2237,5.1917-6.5558,8.5606-6.6464,2.7931-.0751,5.2948,2.6058,5.171,5.5414Z" /><path
+              class="e"
+              d="m99.5652,50.757c5.5266-.0454,9.4366,4.7155,8.5147,10.7295-.5605,3.6561-2.0629,7.0331-4.6857,9.7509-2.1577,2.2358-4.7824,3.5473-7.9768,3.5236-5.9224-.044-9.5503-3.7002-9.8162-9.6216-.3373-7.5122,6.7043-15.2242,13.964-14.3824Z" /><path
+              class="e"
+              d="m129.4155,75.3249c0-5.9372.0473-11.3758-.0237-16.8128-.0277-2.1197,1.1139-2.9919,2.9539-3.2314,1.3061-.17,2.6389-.2693,3.953-.22,6.641.2494,9.2926,5.1699,5.9759,11.0205-2.2236,3.9225-7.6208,7.8902-12.8591,9.2436Z" /></g></svg>
+      </footer>
+</body>
+</html>

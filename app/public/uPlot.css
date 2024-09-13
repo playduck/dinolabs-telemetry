@@ -1,0 +1,27 @@
+#overlay {
+    position: absolute;
+    background-color: var(--warr-blue-1);
+    padding: 0.5rem;
+    margin: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    z-index: 1000;
+    pointer-events: none;
+}
+/*
+#imu .u-legend,
+.sparkline .u-legend {
+    display: none;
+} */
+
+.u-axis {
+    width: 20px!important;
+}
+
+
+.u-legend {
+    font-size: 0.9em!important;
+    margin: 0;
+    padding: 0;
+}

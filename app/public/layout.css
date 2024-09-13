@@ -1,0 +1,111 @@
+main {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(7, 1fr);
+    gap: 10px;
+    margin: 0 10px;
+    height: 88vh;
+  }
+
+  main>div {
+    background-color: var(--background);
+    /* border: 1px solid var(--warr-blue-3); */
+    /* border-radius: var(--border-radius); */
+    /* display: flex;
+    justify-content: center;
+    align-items: center; */
+  }
+
+  /* main div::before {
+    content: attr(data-index);
+    font-size: 24px;
+    font-weight: bold;
+  } */
+
+
+  main>div:nth-child(1) {
+    grid-column:  2 / 5;
+    grid-row: 1 / 2;
+  }
+
+  main>div:nth-child(2) {
+    grid-column: 2 / 5;
+    grid-row: 2 / 3;
+  }
+
+  main>div:nth-child(3) {
+    grid-column: 1 / 2;
+    grid-row: 3 / 8;
+  }
+
+  main>div:nth-child(4) {
+    grid-column: 2 / 5;
+    grid-row: 3 / 6;
+  }
+
+  main>div:nth-child(5) {
+    grid-column: 2 / 4;
+    grid-row: 6 / 8;
+  }
+  main>div:nth-child(6) {
+    grid-column: 1 / 2;
+    grid-row: 1 / 3;
+  }
+
+  main>div:nth-child(7) {
+    grid-column: 4 / 5;
+    grid-row: 6 / 8;
+  }
+
+  #top-chambers,
+  #bot-chambers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: 1fr;
+    gap: 10px;
+    margin: 0;
+  }
+
+  #canvas-3d {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #temperature {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 10px;
+    padding: 10px 0;
+  }
+
+  #temperature-plot {
+    grid-column: 1 / 7;
+    grid-row: 1 / 4;
+  }
+
+  #temperature-gauges {
+    grid-column: 7 / 9;
+    grid-row: 1 / 4;
+  }
+
+  #tec-plot {
+    grid-column: 9 / 13;
+    grid-row: 1 / 3;
+  }
+
+  #tec-power {
+    grid-column: 9 / 13;
+    grid-row: 3 / 4;
+  }
+
+  #power {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 10px
+  }
