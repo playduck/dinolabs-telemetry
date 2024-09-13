@@ -1,11 +1,14 @@
+const port = 3000;
+
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
-const io = require('./socket');
-
 const morgan = require("morgan");
-const port = 3000;
+
+const io = require('./socket');
 const routes = require("./routes");
+const pb = require("./protobuf.js")
+
 
 // Logging middleware
 app.use(morgan("dev"));
@@ -14,7 +17,7 @@ app.use(morgan("dev"));
 app.use(routes);
 
 // Start the server
-server.listen(3000, () => {
-  console.log('Server is running on port 3000');
+server.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
 io.listen(server);

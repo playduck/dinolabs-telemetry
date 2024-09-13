@@ -12,7 +12,7 @@ let camera, scene, renderer, controls, stats, helper, labelRenderer;
 
 let mesh_group = new THREE.Group();
 
-let batteryVoltageLabel, chargePowerInLabel, coldSideBottomLabel, hotSideLabel, coldSideTopLabel;
+let batteryVoltageLabel, chargePowerInLabel, coldSideBottomLabel, hotSideLabel, coldSideTopLabel, cpuLabel;
 
 function createValueUnitElement(name, unit, unitText) {
   // Create the div element
@@ -223,15 +223,20 @@ document.addEventListener("DOMContentLoaded", () => {
   coldSideTopLabel = createValueUnitElement("Cold-Side Top", "temperature", "°C");
   scene.add( addLabel(1,3, points, coldSideTopLabel) );
 
-  points = [new THREE.Vector3(0.2,2.1,0), new THREE.Vector3(0.5,2.1,-0.2)];
+  points = [new THREE.Vector3(0.0,1.25,0), new THREE.Vector3(0.5,1.35,-0.2)];
+  cpuLabel = createValueUnitElement("CPU ", "percentage", "%");
+  scene.add( addLabel(-1,2, points, cpuLabel) );
+
+  points = [new THREE.Vector3(-0.4,2.15,0), new THREE.Vector3(0.5,2.15,-0.2)];
   hotSideLabel = createValueUnitElement("Hot-Side ", "temperature", "°C");
-  scene.add( addLabel(-1,2, points, hotSideLabel) );
+  scene.add( addLabel(-1,3, points, hotSideLabel) );
 
   batteryVoltageLabel.setValue("+00.00");
   chargePowerInLabel.setValue("+00.00");
   coldSideBottomLabel.setValue("+00.00");
   coldSideTopLabel.setValue("+00.00");
   hotSideLabel.setValue("+00.00");
+  cpuLabel.setValue("00.00");
 
   // Update the lighting setup to follow the camera
   function updateLights() {}

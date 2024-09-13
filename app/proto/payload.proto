@@ -1,6 +1,7 @@
 syntax = "proto3";
 
-import "nanopb.proto";
+/* only import when building with nanopb */
+// import "nanopb.proto";
 
 package dinolabs;
 option optimize_for = LITE_RUNTIME;
@@ -11,7 +12,7 @@ enum Versions {
 }
 
 /* main trasaction message */
-message Packet {
+message PayloadPacakge {
     fixed32 crc32 = 1;
     Versions version = 2;
     uint64 timestamp = 3 [ (nanopb).int_size = IS_64 ];
