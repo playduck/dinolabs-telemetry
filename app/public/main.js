@@ -842,8 +842,10 @@ function parseMessage(message)  {
       // TODO format value strings
       const cpu = (Math.round(messageObject.SystemStatus.cpuUsage * 100 * 1000) / 1000).toFixed(2);
       errorCount.innerText = messageObject.SystemStatus.rawErrorCount;
-      payloadState.innerText = messageObject.SystemStatus.currentPayloadState;
-      FCSState.innerText = messageObject.SystemStatus.lastFCSState;
+
+      payloadState.innerText = Number(messageObject.SystemStatus.currentPayloadState).toString(16).padStart(2,"0");
+      FCSState.innerText = Number(messageObject.SystemStatus.lastFCSState).toString(16).padStart(2,"0");
+
       cpuUsage.innerText = `${cpu}%`
       cpuLabel.setValue(cpu);
       storageCapacity.innerText = `${messageObject.SystemStatus.storageCapacity}MB`;
