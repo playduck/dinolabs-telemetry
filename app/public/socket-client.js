@@ -11,6 +11,8 @@ socket.on('connect', () => {
   console.log('Connected to the server');
   document.body.classList.remove("offline");
   document.body.classList.add("online");
+  document.getElementById("rocket-state").innerText = "00";
+  document.getElementById("system-state").innerText = "00";
   requestHeartbeat();
 });
 
@@ -22,6 +24,9 @@ socket.on('disconnect', () => {
 
   rttElement.innerText = "";
   rtt = undefined;
+
+  document.getElementById("rocket-state").innerText = "";
+  document.getElementById("system-state").innerText = "";
 });
 
 let heartbeatRequsetTime;
