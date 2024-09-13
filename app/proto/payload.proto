@@ -52,10 +52,7 @@ message ExperimentSensor {
 
 message ExperimentBoard {
     uint32 boardId = 1 [ (nanopb).int_size = IS_8 ];
-    ExperimentSensor sensor1 = 2;
-    ExperimentSensor sensor2 = 3;
-    ExperimentSensor sensor3 = 4;
-    ExperimentSensor sensor4 = 5;
+    repeated ExperimentSensor sensors = 2 [ (nanopb).max_count = 4 ];
 }
 
 message TEC {
@@ -73,17 +70,12 @@ message CoolingSystem {
     TEC BottomTEC = 2;
     Fan fan = 3;
 
-    repeated TemperatureSensor Top_Cool_Side = 4 [ (nanopb).max_count = 4 ];
-    repeated TemperatureSensor Bottom_Cool_Side = 5 [ (nanopb).max_count = 4 ];
-    repeated TemperatureSensor Hot_Side = 6 [ (nanopb).max_count = 2 ];
+    float Temp_Top_Cool_Side = 4;
+    float Temp_Bottom_Cool_Side = 5;
+    float Temp_Hot_Side = 6;
 
     /* did overtemp event occour since last message?, LSB=Top Overheat, LSB+1=Bottom Overheat */
     uint32 overtempEventOccured = 8 [ (nanopb).int_size = IS_8 ];
-}
-
-message TemperatureSensor {
-    uint32 sensorId = 1 [ (nanopb).int_size = IS_8 ];
-    float temperature = 2; /* Temperature in degC */
 }
 
 message IMU {

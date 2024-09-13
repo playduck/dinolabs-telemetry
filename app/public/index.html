@@ -124,12 +124,12 @@
             <span id="rocket-state"></span>
           </div>
           <div>
-            <label>RTT</label>
-            <span id="connection"></span>
-          </div>
-          <div>
             <label>System State</label>
             <span id="system-state"></span>
+          </div>
+          <div>
+            <label>Server RTT</label>
+            <span id="connection"></span>
           </div>
         </div>
       </header>
@@ -150,7 +150,7 @@
               <h5><div class="square" style="background-color: var(--warr-blue-2);"></div>Cold-Side Top</h5>
               <span class="value"></span>
               <span class="unit temperature">°C</span>
-              <div class="temperature-bar cold" style="--level: 0%; --ath-level: 0%;">
+              <div class="temperature-bar cold" style="--level: 100%; --ath-level: 0%;">
                 <span>0°C</span>
                 <span>20°C</span>
                 <span>40°C</span>
@@ -170,7 +170,7 @@
               <h5><div class="square" style="background-color: var(--warr-blue-3);"></div>Cold-Side Bottom</h5>
               <span class="value"></span>
               <span class="unit temperature">°C</span>
-              <div class="temperature-bar cold" style="--level: 50%; --ath-level: 0%;">
+              <div class="temperature-bar cold" style="--level: 100%; --ath-level: 0%;">
                 <span>0°C</span>
                 <span>20°C</span>
                 <span>40°C</span>
@@ -362,7 +362,8 @@
           <table>
             <thead>
               <tr>
-                <th>UNIX Timestamp</th>
+                <th>N</th>
+                <th>Timestamp</th>
                 <th>Delta Time</th>
                 <th>Message Type</th>
               </tr>

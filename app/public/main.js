@@ -4,7 +4,8 @@ import {
   chargePowerInLabel,
   coldSideBottomLabel,
   coldSideTopLabel,
-  hotSideLabel } from './visualization.js';
+  hotSideLabel,
+  cpuLabel } from './visualization.js';
 
 import socketClient from './socket-client.js';
 
@@ -33,7 +34,10 @@ let coldSideTopGraph, coldSideTopValue;
 let coldSideBotGraph, coldSideBotValue;
 let hotSideGraph, hotSideValue;
 let messageLog;
-let previousTime = 0;
+let previousTime = undefined;
+
+let powerGood, chargeSource;
+let errorCount, payloadState, FCSState, cpuUsage, storageCapacity;
 
 let colors = {
   "--warr-blue-1": undefined,
@@ -82,9 +86,10 @@ function arcurve(level, ath) {
 
 /* format a numeric value to append a prefix (+-) and fix and pad it */
 function formatValue(x) {
-  let prefix = x >= 0 ? "+" : ""; // automatic prefix for negative values
-  let integerPart = Math.abs(x).toFixed(0).padStart(2, "0"); // pad the integer part
-  let decimalPart = x.toFixed(2).split('.')[1]; // get the decimal part
+  const prefix = x >= 0 ? "+" : ""; // automatic prefix for negative values
+  const fixed = Math.abs(x).toFixed(2).split('.');
+  const integerPart = fixed[0].padStart(2, "0"); // pad the integer part
+  const decimalPart = fixed[1]; // get the decimal part
   return `${prefix}${integerPart}.${decimalPart}`;
 }
 
@@ -144,7 +149,7 @@ function addAndConfine(data, newY, size) {
 
 /** DOM manipulation functions */
 /* fill a PowerBlock with values */
-function setPowerBlockValues(id, voltage, current, power) {
+function setPowerBlockValues(id, voltage, current) {
   // Get the power block element
   const powerBlock = document.getElementById(id);
 
@@ -171,34 +176,40 @@ function setPowerBlockValues(id, voltage, current, power) {
 }
 
 /* add a DOM row to a table */
-function appendTableRow(element, limit, time, type, previousTime) {
+let tableRowCount = 0;
+function appendTableRow(limit, time, type, previousTime) {
     // Create a new table row element
     const row = document.createElement('tr');
 
-    // Create three new table cell elements and append them to the row
     const cell1 = document.createElement('td');
-    cell1.textContent = time.toString();
+    cell1.textContent = ++tableRowCount;
     row.appendChild(cell1);
 
     const cell2 = document.createElement('td');
-    if (previousTime !== undefined) {
-      const delta = time - previousTime;
-      cell2.textContent = `${delta} ms`;
-    } else {
-      cell2.textContent = '';
-    }
+    const d =  new Date(parseInt(time));
+    cell2.textContent = d.toLocaleTimeString();
     row.appendChild(cell2);
 
     const cell3 = document.createElement('td');
-    cell3.textContent = type;
+    if (previousTime !== undefined) {
+      const delta = time - previousTime;
+      cell3.textContent = `${delta} ms`;
+    } else {
+      previousTime = time;
+      cell3.textContent = 'none';
+    }
     row.appendChild(cell3);
 
+    const cell4 = document.createElement('td');
+    cell4.textContent = type;
+    row.appendChild(cell4);
+
     // Append the new row to the element
-    element.insertBefore(row, element.firstChild);
+    messageLog.insertBefore(row, messageLog.firstChild);
 
     // If the element has more than the limit number of children, remove the oldest
-    if (element.children.length > limit) {
-      element.removeChild(element.lastChild);
+    if (messageLog.children.length > limit) {
+      messageLog.removeChild(messageLog.lastChild);
     }
 
     return time;
@@ -302,6 +313,8 @@ function generateChamber(index, parent) {
   const u = new uPlot(opts, data, sparkline);
   u.getSize = getSize;
   chambers.push({
+    irradianceValue: irradianceValue,
+    voltageValue: voltageValue,
     chamber: chamber,
     sparkline: u,
   });
@@ -682,6 +695,15 @@ function init() {
   hotSideGraph = [...hotSide.getElementsByClassName("temperature-bar")][0];
   hotSideValue = [...hotSide.getElementsByClassName("value")][0];
 
+  powerGood = document.getElementById("power-good");
+  chargeSource = document.getElementById("charge-src");
+
+  errorCount= document.getElementById("error-count");
+  payloadState  = document.getElementById("system-state");
+  FCSState = document.getElementById("rocket-state");
+  cpuUsage = document.getElementById("cpu-usage");
+  storageCapacity = document.getElementById("storage-capacity");
+
   messageLog = document.getElementById("message-scroll-block");
 
   /* add uPlots */
@@ -689,6 +711,8 @@ function init() {
   const botChambers = document.getElementById("bot-chambers");
   for (let i = 1; i <= 4; i++) {
     mooSync.sub(generateChamber(i, topChambers));
+  }
+  for (let i = 1; i <= 4; i++) {
     mooSync.sub(generateChamber(i + 4, botChambers));
   }
   chambers.forEach((c) => {
@@ -704,17 +728,169 @@ function init() {
   clearAll();
 }
 
+function setExpPlot(board, i, sensor) {
+  const maxVal = 20.0
+  const value = sensor.averageRawOpticalPower;
+
+  chambers[i].sparkline.setData(addAndConfine(chambers[i].sparkline.data, value, experimentHistory));
+  chambers[i].chamber.style.setProperty("--level",`${100 - Math.min(Math.max((value / maxVal) * 100, 0), 100)}%`);
+
+  chambers[i].irradianceValue.innerText = formatValue(sensor.averageRawOpticalPower);
+  chambers[i].voltageValue.innerText = formatValue(sensor.photodiodeVoltage);
+}
+
+function parseMessage(message)  {
+  const messageObject = JSON.parse(message);
+  const messageType = Object.keys(messageObject)[1];
+
+  /* write to log table */
+  previousTime = appendTableRow(LogHistory, messageObject.timestamp, messageType, previousTime);
+
+  switch(messageType) {
+    case "PowerState":
+      const newPowerData = [
+          messageObject.PowerState.V_Battery,
+          messageObject.PowerState.I_Battery,
+          messageObject.PowerState.V_Charge_Input,
+          messageObject.PowerState.I_Charge_Input,
+        ];
+        powerPlot.setData(
+          addAndConfine(powerPlot.data, newPowerData, PowerHistory)
+        );
+        setPowerBlockValues("RailBat", messageObject.PowerState.V_Battery, messageObject.PowerState.I_Battery,);
+        setPowerBlockValues("RailChrgIn", messageObject.PowerState.V_Charge_Input, messageObject.PowerState.I_Charge_Input);
+        setPowerBlockValues("RailChrgOut", messageObject.PowerState.V_Battery, messageObject.PowerState.I_Charge_Battery);
+
+        setPowerBlockValues("Rail12V", messageObject.PowerState.V_Rail_12V, messageObject.PowerState.I_Rail_12V);
+        setPowerBlockValues("Rail5V", messageObject.PowerState.V_Rail_5V, messageObject.PowerState.I_Rail_5V);
+        setPowerBlockValues("Rail3V3", messageObject.PowerState.V_Rail_3V3, messageObject.PowerState.I_Rail_3V3);
+
+        batteryVoltageLabel.setValue(formatValue(messageObject.PowerState.V_Battery));
+        chargePowerInLabel.setValue(formatValue(messageObject.PowerState.V_Charge_Input * messageObject.PowerState.I_Charge_Input));
+
+        switch(messageObject.PowerState.powerState & 0x0f)  {
+          case 0:
+            chargeSource.innerText = "none";
+            break;
+          case 1:
+            chargeSource.innerText = "USB PD";
+            break;
+          case 2:
+            chargeSource.innerText = "Umbilical";
+            break;
+          default:
+            chargeSource.innerText = "Unkown";
+            break;
+        }
+
+        if(messageObject.PowerState.powerState & 0x10)  {
+          powerGood.innerText = "Good";
+          powerGood.classList.add("good");
+          powerGood.classList.remove("fail");
+        } else  {
+          powerGood.innerText = "Fail";
+          powerGood.classList.remove("good");
+          powerGood.classList.add("fail");
+        }
+
+      break;
+    case "ExperiementState":
+      const boardId = messageObject.ExperiementState.boardId;
+        for(const sensor in messageObject.ExperiementState.sensors) {
+          setExpPlot(boardId, boardId * 4 + parseInt(sensor), messageObject.ExperiementState.sensors[sensor]);
+        }
+      break;
+    case "CoolingState":
+      const newTempData = [messageObject.CoolingState.Temp_Top_Cool_Side, messageObject.CoolingState.Temp_Bottom_Cool_Side, messageObject.CoolingState.Temp_Hot_Side];
+      tempPlot.setData(addAndConfine(tempPlot.data, newTempData, TempHistory));
+
+      coldSideTopValue.innerText = formatValue(messageObject.CoolingState.Temp_Top_Cool_Side);
+      coldSideBotValue.innerText = formatValue(messageObject.CoolingState.Temp_Bottom_Cool_Side);
+      hotSideValue.innerText = formatValue(messageObject.CoolingState.Temp_Hot_Side);
+
+      coldSideTopGraph.style.setProperty(
+        "--level",
+        `${map(messageObject.CoolingState.Temp_Top_Cool_Side, 0, 40, 0, 100)}%`
+      );
+      coldSideBotGraph.style.setProperty(
+        "--level",
+        `${map(messageObject.CoolingState.Temp_Bottom_Cool_Side, 0, 40, 0, 100)}%`
+      );
+      hotSideGraph.style.setProperty(
+        "--level",
+        `${map(messageObject.CoolingState.Temp_Hot_Side, 0, 80, 0, 100)}%`
+      );
+
+      coldSideTopLabel.setValue(formatValue(messageObject.CoolingState.Temp_Top_Cool_Side));
+      coldSideBottomLabel.setValue(formatValue(messageObject.CoolingState.Temp_Bottom_Cool_Side));
+      hotSideLabel.setValue(formatValue(messageObject.CoolingState.Temp_Hot_Side));
+
+      const newTecData = [
+        messageObject.CoolingState.TopTEC.TECVoltage,
+        messageObject.CoolingState.TopTEC.TECCurrent,
+        messageObject.CoolingState.BottomTEC.TECVoltage,
+        messageObject.CoolingState.BottomTEC.TECCurrent,
+        messageObject.CoolingState.fan.FanVoltage,
+        messageObject.CoolingState.fan.FanCurrent
+      ];
+      tecPlot.setData(addAndConfine(tecPlot.data, newTecData, TECHistory));
+      setPowerBlockValues("tec-top", messageObject.CoolingState.TopTEC.TECVoltage, messageObject.CoolingState.TopTEC.TECCurrent);
+      setPowerBlockValues("tec-bot", messageObject.CoolingState.BottomTEC.TECVoltage, messageObject.CoolingState.BottomTEC.TECCurrent);
+      setPowerBlockValues("fan", messageObject.CoolingState.fan.FanVoltage, messageObject.CoolingState.fan.FanCurrent);
+      break;
+    case "SystemStatus":
+      // TODO format value strings
+      const cpu = (Math.round(messageObject.SystemStatus.cpuUsage * 100 * 1000) / 1000).toFixed(2);
+      errorCount.innerText = messageObject.SystemStatus.rawErrorCount;
+      payloadState.innerText = messageObject.SystemStatus.currentPayloadState;
+      FCSState.innerText = messageObject.SystemStatus.lastFCSState;
+      cpuUsage.innerText = `${cpu}%`
+      cpuLabel.setValue(cpu);
+      storageCapacity.innerText = `${messageObject.SystemStatus.storageCapacity}MB`;
+
+      const newGyroData = [
+        messageObject.SystemStatus.IMU.gyroX,
+        messageObject.SystemStatus.IMU.gyroY,
+        messageObject.SystemStatus.IMU.gyroZ,
+      ];
+      imuGyrolSparkline.setData(
+        addAndConfine(imuGyrolSparkline.data, newGyroData, IMUHistory)
+      );
+
+      const newAccelData = [
+        messageObject.SystemStatus.IMU.accX,
+        messageObject.SystemStatus.IMU.accY,
+        messageObject.SystemStatus.IMU.accZ,
+      ];
+
+      newAccelData.push(
+        Math.sqrt(
+          Math.pow(newAccelData[0], 2) +
+          Math.pow(newAccelData[1], 2) +
+          Math.pow(newAccelData[2], 2)
+        )
+      );
+      imuAccelSparkline.setData(
+        addAndConfine(imuAccelSparkline.data, newAccelData, IMUHistory)
+      );
+
+      animate_data(
+        [newAccelData[0], newAccelData[1], newAccelData[2]],
+        [newGyroData[0], newGyroData[1], newGyroData[2]],
+        Date.now() - previousTime
+      );
+      break;
+    default:
+      console.error(`Unkown messageType ${messageType}`)
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   init();
 
   if(!demoMode) {
-  /* setup weboscket hooks  */
-
-  socketClient.onMessage((message) => {
-    const messageObject = JSON.parse(message)
-    console.log(messageObject)
-  });
-
+    /* setup weboscket hooks  */
+    socketClient.onMessage(parseMessage);
   } else  {
     const demoModeIndicator = document.getElementById("demo-mode");
     demoModeIndicator.style.visibility = "visible";
@@ -876,7 +1052,7 @@ document.addEventListener("DOMContentLoaded", () => {
       chargePowerInLabel.setValue(formatValue(newPowerData[2] * newPowerData[3]));
 
       const msg_types = ['Experiment Top', 'Experiment Bottom', 'Temperature', "TEC", "IMU", "Power", "System", "Heartbeat"];
-      previousTime = appendTableRow(messageLog, LogHistory, Date.now(),msg_types[(Math.random() * msg_types.length) | 0], previousTime);
+      previousTime = appendTableRow(LogHistory, Date.now(),msg_types[(Math.random() * msg_types.length) | 0], previousTime);
     }
     setInterval(update, demoLoopIntervalMs);
   }

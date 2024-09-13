@@ -163,11 +163,11 @@ button:active {
     margin-right: 1em;
 }
 
-#info select {
+#info span {
     padding: 0;
     height: 1em;
     border-bottom: 0;
-    min-width: 6em;
+    min-width: 4em;
 }
 
 #system-state, #connection, #rocket-state {
@@ -177,9 +177,21 @@ button:active {
 #connection {
     color: var(--warr-black);
 }
+#connection::after {
+    content: "ms";
+    padding-left: 0.5ex;
+    font-weight: 200;
+    font-size: 0.9em;
+    color: var(--dark-gray);
+}
+
+.offline #connection::after {
+    content: "";
+}
 
 .online #connection {
-    color: var(--warr-green);
+    /* increase contrast slightly to compensate for the small font */
+    color: color-mix(in srgb, var(--warr-green), var(--dark-gray) 10%);
 }
 
 .offline #connection::before,
@@ -202,9 +214,8 @@ footer {
     border-top: 1px solid var(--warr-blue-1);
     padding: 1ex 3em;
     margin-top: 10px;
-    color: color-mix(in srgb, var(--light-gray), var(--dark-gray) 50%);
+    color:  var(--dark-gray);
 }
-
 
 .frosted {
     background-color: color-mix(in srgb, var(--warr-blue-3), transparent 70%)!important;
@@ -409,6 +420,12 @@ footer {
     padding: 0.5ex;
     text-align: left;
 }
+#log table tr th:nth-child(1) {
+    width: 5%!important;
+}
+#log table td:nth-child(3) {
+    text-align: center;
+}
 
 #temperature-gauges {
     display: grid;
@@ -556,6 +573,13 @@ footer {
 
 #power-state span {
     font-weight: 600;
+}
+
+#power-good.fail  {
+    color: var(--warr-red);
+}
+#power-good.good  {
+    color: color-mix(in srgb, var(--warr-green), var(--dark-gray) 10%);
 }
 
 #power-rails > *:nth-child(-n + 4) {

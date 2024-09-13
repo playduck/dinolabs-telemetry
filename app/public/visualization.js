@@ -324,5 +324,6 @@ export {
   chargePowerInLabel,
   coldSideBottomLabel,
   coldSideTopLabel,
-  hotSideLabel
+  hotSideLabel,
+  cpuLabel
 }

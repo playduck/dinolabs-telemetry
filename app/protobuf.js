@@ -1,12 +1,11 @@
 const path = require("path");
 const protobuf = require("protobufjs");
+const { styleText } = require("util");
 
 const protobufDefinition = path.join(__dirname, "./proto/payload.proto");
 let decodeMessage;
 
 let io = undefined;
-
-
 
 module.exports = (_io) => {
     io = _io;
@@ -19,6 +18,7 @@ module.exports = (_io) => {
         const PayloadPacakge = root.lookupType("dinolabs.PayloadPacakge");
         const Versions = root.lookupEnum("dinolabs.Versions").values;
 
+        let boardId = 0;
         function createDummyMessage(type)   {
             const payload = {
                 crc32: 0,
@@ -33,7 +33,7 @@ module.exports = (_io) => {
                         I_Battery: 3 + 1 * Math.random(),
                         V_Charge_Input: 36 + 0.1 * Math.random(),
                         I_Charge_Input: Math.min(0.25 + Math.random(), 0.27),
-                        I_Charge_Battery: 2.1 + 0.1 * Math.random(),
+                        I_Charge_Battery: 0,
                         V_Rail_12V: Math.min(11.9 + 0.2 * Math.random(), 12.1),
                         I_Rail_12V:0.85 + 0.1 *Math.random(),
                         V_Rail_5V: Math.min(4.9 + 0.2 * Math.random(), 5.15),
@@ -42,27 +42,31 @@ module.exports = (_io) => {
                         I_Rail_3V3: 0.9 + 0.4 * Math.random(),
                         powerState: 0x12,
                     };
+                    payload.PowerState.I_Charge_Battery = ((payload.PowerState.V_Charge_Input * payload.PowerState.I_Charge_Input) / payload.PowerState.V_Battery) - 0.01;
                     break;
                 case "ExperiementState":
                     payload.ExperiementState = {
-                        boardId: Math.random() > 0.5 ? 1 : 0,
-                        sensor1: {
-                            averageRawOpticalPower: 0.1 * Math.random(),
-                            photodiodeVoltage: 0.1 * Math.random(),
-                        },
-                        sensor2: {
-                            averageRawOpticalPower: 0.1 * Math.random(),
-                            photodiodeVoltage: 0.1 * Math.random(),
-                        },
-                        sensor3: {
-                            averageRawOpticalPower: 0.1 * Math.random(),
-                            photodiodeVoltage: 0.1 * Math.random(),
-                        },
-                        sensor4: {
-                            averageRawOpticalPower: 0.1 * Math.random(),
-                            photodiodeVoltage: 0.1 * Math.random(),
-                        },
+                        boardId: boardId,
+                        sensors: [
+                            {
+                            averageRawOpticalPower: 0.8 * Math.random(),
+                            photodiodeVoltage: 0.36 * Math.random(),
+                            },
+                            {
+                            averageRawOpticalPower: 0.5 * Math.random(),
+                            photodiodeVoltage: 0.8 * Math.random(),
+                            },
+                            {
+                            averageRawOpticalPower: 0.6 * Math.random(),
+                            photodiodeVoltage: 0.4 * Math.random(),
+                            },
+                            {
+                            averageRawOpticalPower: 0.61 * Math.random(),
+                            photodiodeVoltage: 0.73 * Math.random(),
+                            },
+                        ]
                     }
+                    boardId = (boardId + 1) % 2;
                     break;
                 case "CoolingState":
                     payload.CoolingState = {
@@ -75,55 +79,13 @@ module.exports = (_io) => {
                             TECCurrent: 1.5 + Math.random(),
                         },
                         fan: {
-                            FanVoltage: 11 + Math.random(),
-                            FanCurrent: 0.8 + 0.1 * Math.random()
+                            FanVoltage: 11.8 + 0.1 * Math.random(),
+                            FanCurrent: 0.8 + 0.15 * Math.random()
                         },
-                        Top_Cool_Side: [
-                            {
-                                sensorId: 0,
-                                temperature: 19.5 + 0.5 * Math.random()
-                            },
-                            {
-                                sensorId: 1,
-                                temperature: 19.5 + 0.5 * Math.random()
-                            },
-                            {
-                                sensorId: 2,
-                                temperature: 19.5 + 0.5 * Math.random()
-                            },
-                            {
-                                sensorId: 3,
-                                temperature: 19.5 + 0.5 * Math.random()
-                            },
-                        ],
-                        Bottom_Cool_Side: [
-                            {
-                                sensorId: 0,
-                                temperature: 19.5 + 0.5 * Math.random()
-                            },
-                            {
-                                sensorId: 1,
-                                temperature: 19.5 + 0.5 * Math.random()
-                            },
-                            {
-                                sensorId: 2,
-                                temperature: 19.5 + 0.5 * Math.random()
-                            },
-                            {
-                                sensorId: 3,
-                                temperature: 19.5 + 0.5 * Math.random()
-                            },
-                        ],
-                        Hot_Side: [
-                            {
-                                sensorId: 0,
-                                temperature: 40 + 20 * Math.random()
-                            },
-                            {
-                                sensorId: 1,
-                                temperature: 40 + 20 * Math.random()
-                            }
-                        ],
+                        Temp_Top_Cool_Side:  19.5 + 0.3 * Math.random(),
+                        Temp_Hot_Side: 40 + 4 * Math.random(),
+                        Temp_Bottom_Cool_Side:  19.5 + 0.3 * Math.random(),
+
                         overtempEventOccured: 0
                     }
                     break;
@@ -132,7 +94,7 @@ module.exports = (_io) => {
                         currentPayloadState: 0x01,
                         lastFCSState: 0x05,
                         rawErrorCount: 0,
-                        cpuUsage: 0.2,
+                        cpuUsage: 0.2 + 0.2 * Math.random(),
                         storageCapacity: Math.round(1000 + 10 * Math.random()),
                         IMU: {
                             accX: 0,
@@ -178,12 +140,23 @@ module.exports = (_io) => {
         }
 
         /* self test */
-        setTimeout(() => {
-        for(const type in PayloadPacakgeTypes)  {
-            const msg = decodeMessage(createDummyMessage(PayloadPacakgeTypes[type]));
+        let i = 0;
+        function sendMessage() {
+            i = (i + 1) % PayloadPacakgeTypes.length;
+            const msg = decodeMessage(createDummyMessage(PayloadPacakgeTypes[i]));
             io.emit("message", JSON.stringify(msg))
         }
-        }, 1000);
+
+    (function loop() {
+        var rand = Math.round(100 + 200 * Math.random());
+        setTimeout(() => {
+            sendMessage();
+            loop();
+        }, rand);
+    }());
+
+
+
 
     });
 };

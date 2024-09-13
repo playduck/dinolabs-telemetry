@@ -11,12 +11,16 @@ socket.on('connect', () => {
   console.log('Connected to the server');
   document.body.classList.remove("offline");
   document.body.classList.add("online");
+  requestHeartbeat();
 });
 
 socket.on('disconnect', () => {
   console.log('Disconnected from the server');
+
   document.body.classList.add("offline");
   document.body.classList.remove("online");
+
+  rttElement.innerText = "";
   rtt = undefined;
 });
 
@@ -37,9 +41,7 @@ function requestHeartbeat() {
   heartbeatRequsetTime = Date.now();
   socket.emit("heartbeat-request", heartbeatRequsetTime);
 }
-
 setInterval(requestHeartbeat, heartbeatIntervalMs);
-requestHeartbeat();
 
 const socketClient = {
 

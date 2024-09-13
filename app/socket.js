@@ -13,6 +13,7 @@ io.on('connection', (socket) => {
     console.log(`Received message: ${message}`);
   });
 
+  // handle heartbeat messages for RTT
   socket.on("heartbeat-request", (heartbeatRequestTime) => {
     socket.emit("heartbeat-response", Date.now());
   });
