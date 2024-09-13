@@ -40,6 +40,10 @@ let powerGood, chargeSource;
 let errorCount, payloadState, FCSState, cpuUsage, storageCapacity;
 
 let colors = {
+  "--very-light-gray": undefined,
+  "--light-gray": undefined,
+  "--very-dark-gray": undefined,
+  "--dark-gray": undefined,
   "--warr-blue-1": undefined,
   "--warr-blue-2": undefined,
   "--warr-blue-3": undefined,
@@ -290,10 +294,18 @@ function generateChamber(index, parent) {
       {
         show: true,
         size: 0,
+        stroke: colors["--very-dark-gray"],
+        grid: {
+          stroke: colors["--light-gray"],
+        }
       },
       {
         show: true,
         size: 35,
+        stroke: colors["--very-dark-gray"],
+        grid: {
+          stroke: colors["--light-gray"],
+        }
       },
     ],
     series: [
@@ -352,14 +364,22 @@ function addIMU(id, sum = false, range) {
       show: false,
     },
     axes: [
-        {
-            show: true,
-            size: 0,
-        },
+      {
+        show: true,
+        size: 0,
+        stroke: colors["--very-dark-gray"],
+        grid: {
+          stroke: colors["--light-gray"],
+        }
+      },
       {
         show: true,
         size: 40,
         gap: 0,
+        stroke: colors["--very-dark-gray"],
+        grid: {
+          stroke: colors["--light-gray"],
+        }
       },
     ],
     series: [
@@ -436,12 +456,20 @@ function addTemperaturePlot() {
       {
         show: true,
         size: 30,
+        stroke: colors["--very-dark-gray"],
+        grid: {
+          stroke: colors["--light-gray"],
+        }
       },
       {
         show: true,
         size: 30,
         label: "Temperature °C",
         labelGap: 8,
+        stroke: colors["--very-dark-gray"],
+        grid: {
+          stroke: colors["--light-gray"],
+        }
       },
     ],
     series: [
@@ -515,16 +543,24 @@ function addTECPlot() {
       show: false,
     },
     axes: [
-        {
-            show: true,
-            size: 0,
-          },
+      {
+        show: true,
+        size: 0,
+        stroke: colors["--very-dark-gray"],
+        grid: {
+          stroke: colors["--light-gray"],
+        }
+      },
       {
         scale: "v",
         show: true,
         size: 30,
         label: "Voltage (V)",
         labelGap: 8,
+        stroke: colors["--very-dark-gray"],
+        grid: {
+          stroke: colors["--light-gray"],
+        }
       },
       {
         scale: "i",
@@ -533,6 +569,10 @@ function addTECPlot() {
         label: "Current (A)",
         side: 1,
         labelGap: 8,
+        stroke: colors["--very-dark-gray"],
+        grid: {
+          stroke: colors["--light-gray"],
+        }
       },
     ],
     series: [
@@ -621,16 +661,24 @@ function addPowerPlot() {
       show: false,
     },
     axes: [
-        {
-            show: true,
-            size: 0,
-          },
+      {
+        show: true,
+        size: 0,
+        stroke: colors["--very-dark-gray"],
+        grid: {
+          stroke: colors["--light-gray"],
+        }
+      },
       {
         scale: "v",
         show: true,
         size: 30,
         label: "Voltage (V)",
         labelGap: 8,
+        stroke: colors["--very-dark-gray"],
+        grid: {
+          stroke: colors["--light-gray"],
+        }
       },
       {
         scale: "i",
@@ -639,6 +687,10 @@ function addPowerPlot() {
         label: "Current (A)",
         side: 1,
         labelGap: 8,
+        stroke: colors["--very-dark-gray"],
+        grid: {
+          stroke: colors["--light-gray"],
+        }
       },
     ],
     series: [

@@ -332,6 +332,7 @@ footer {
     border: 1px solid var(--warr-blue-1);
     border-top-width: 1.5rem;
     position: relative;
+    background-color: var(--very-light-gray);
 }
 
 #imu::before, #temperature::before, #power::before,
@@ -394,7 +395,7 @@ footer {
     left: 50%;
     transform: translateX(-50%);
     padding: 0.25em;
-    background-color: var(--background);
+    background-color: var(--very-light-gray);
 }
 
 #log table  {
