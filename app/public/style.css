@@ -204,7 +204,8 @@ button:active {
 footer {
     background-color: var(--background);
     z-index: 999999;
-    position: absolute;
+    position: sticky;
+    position: -webkit-sticky;
     left: 0;
     right: 0;
     bottom: 0;
@@ -400,6 +401,7 @@ footer {
 
 #log {
     overflow: hidden;
+    max-height: 25vh;
 }
 
 #log table  {
@@ -558,16 +560,6 @@ footer {
     max-width: 5em;
 }
 
-#power-rails {
-    margin: 0 1em;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    column-gap: 10px;
-    align-items: center;
-    position: relative;
-}
-
 #power-state {
     display: flex;
     position: absolute;
@@ -616,5 +608,8 @@ footer {
     .values {
         grid-template-columns: 1fr 1fr;
         grid-template-rows: 1fr 1fr;
+    }
+    #log th {
+        width: 10%;
     }
 }
