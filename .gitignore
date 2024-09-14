@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/macos,windows,linux,visualstudiocode,node,python
-# Edit at https://www.toptal.com/developers/gitignore?templates=macos,windows,linux,visualstudiocode,node,python
+# Created by https://www.toptal.com/developers/gitignore/api/node,linux,macos,windows,visualstudiocode,python,venv
+# Edit at https://www.toptal.com/developers/gitignore?templates=node,linux,macos,windows,visualstudiocode,python,venv
 
 ### Linux ###
 *~
@@ -358,6 +358,18 @@ poetry.toml
 # LSP config files
 pyrightconfig.json
 
+### venv ###
+# Virtualenv
+# http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
+[Bb]in
+[Ii]nclude
+[Ll]ib
+[Ll]ib64
+[Ll]ocal
+[Ss]cripts
+pyvenv.cfg
+pip-selfcheck.json
+
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json
@@ -403,4 +415,4 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/macos,windows,linux,visualstudiocode,node,python
+# End of https://www.toptal.com/developers/gitignore/api/node,linux,macos,windows,visualstudiocode,python,venv

@@ -118,9 +118,11 @@ module.exports = (_io) => {
                 throw Error(errMsg);
             const message = PayloadPacakge.create(payload);
             const buffer = PayloadPacakge.encode(message).finish();
+
             // console.log(`Encoded size of ${buffer.length} bytes`);
-            avgsize = (0.01 * buffer.length) + 0.99 * avgsize;
-            console.log(Math.round(avgsize * 1000) / 1000)
+            // avgsize = (0.01 * buffer.length) + 0.99 * avgsize;
+            // console.log(Math.round(avgsize * 1000) / 1000)
+
             return buffer;
         }
 

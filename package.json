@@ -10,8 +10,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "async": "^3.2.6",
     "express": "^4.21.0",
     "morgan": "^1.10.0",
+    "node-opcua": "^2.132.0",
+    "node-opcua-client": "^2.132.0",
     "protobufjs": "^7.4.0",
     "socket.io": "^4.7.5",
     "three": "^0.168.0",

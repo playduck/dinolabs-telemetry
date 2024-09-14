@@ -5,9 +5,10 @@ const app = express();
 const server = require('http').createServer(app);
 const morgan = require("morgan");
 
+const opc = require('./opc');
 const io = require('./socket');
 const routes = require("./routes");
-const pb = require("./protobuf.js")(io)
+const pb = require("./protobuf")(io)
 
 // Logging middleware
 app.use(morgan("dev"));
