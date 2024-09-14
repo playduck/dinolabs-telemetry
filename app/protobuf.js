@@ -7,6 +7,8 @@ let decodeMessage;
 
 let io = undefined;
 
+let avgsize = 0;
+
 module.exports = (_io) => {
     io = _io;
     protobuf.load(protobufDefinition, function(err, root) {
@@ -117,6 +119,8 @@ module.exports = (_io) => {
             const message = PayloadPacakge.create(payload);
             const buffer = PayloadPacakge.encode(message).finish();
             // console.log(`Encoded size of ${buffer.length} bytes`);
+            avgsize = (0.01 * buffer.length) + 0.99 * avgsize;
+            console.log(Math.round(avgsize * 1000) / 1000)
             return buffer;
         }
 
@@ -148,7 +152,7 @@ module.exports = (_io) => {
         }
 
     (function loop() {
-        var rand = Math.round(100 + 200 * Math.random());
+        var rand = Math.round(200 + 50 * Math.random());
         setTimeout(() => {
             sendMessage();
             loop();

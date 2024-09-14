@@ -14,12 +14,13 @@ const demoLoopIntervalMs = 250;
 const uiUpdateLoopIntervalMs = 100;
 
 /* scrollback plot count  */
-const experimentHistory = 60;
-const IMUHistory = 60;
-const TempHistory = 60;
-const TECHistory = 60;
-const PowerHistory = 60;
-const LogHistory = 60;
+const globalHistory = 50;
+const experimentHistory = globalHistory;
+const IMUHistory = globalHistory;
+const TempHistory = globalHistory;
+const TECHistory = globalHistory;
+const PowerHistory = globalHistory;
+const LogHistory = globalHistory;
 
 /* pltos */
 const chambers = [];
@@ -464,7 +465,7 @@ function addTemperaturePlot() {
       {
         show: true,
         size: 30,
-        label: "Temperature °C",
+        label: "Temperature (°C)",
         labelGap: 8,
         stroke: colors["--very-dark-gray"],
         grid: {
