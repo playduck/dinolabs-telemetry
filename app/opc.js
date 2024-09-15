@@ -13,9 +13,9 @@ const subscriptionConfig = {
   priority: 1,
 };
 const monitoredItemConfig = {
-  samplingInterval: 10,
+  samplingInterval: 0,
   discardOldest: true,
-  queueSize: 1,
+  queueSize: 0,
 };
 
 const client = opcua.OPCUAClient.create({

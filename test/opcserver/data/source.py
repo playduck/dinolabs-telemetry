@@ -111,79 +111,92 @@ def serialize(msg: payload.PayloadPacakge) -> bytearray:
 MESSAGE_TYPES = ["SystemStatus","PowerState","CoolingState","ExperiementState"]
 
 # generate an encoded buffer of a random type
+state = 0
 def example_generate_random_buffer() -> bytearray:
-    import random
+    global state
+
     msg = payload.PayloadPacakge()
-    example_populate_data(msg, random.choice(MESSAGE_TYPES))
+    example_populate_data(msg, MESSAGE_TYPES[state])
     buffer = serialize(msg)
+
+    state = (state + 1) % len(MESSAGE_TYPES)
+
     return buffer
 
+exp_board_state = 0
 # populate a protobuf with dummy datr for a given type
 def example_populate_data(msg: payload.PayloadPacakge, type: str) -> payload.PayloadPacakge:
+    global exp_board_state
     import random
+    import math
+
+    time = __timestamp()
+
     match(type):
         case "SystemStatus":
             # populate data
             msg.SystemStatus.currentPayloadState = 0x01
             msg.SystemStatus.lastFCSState = 0x05
             msg.SystemStatus.rawErrorCount = 0
-            msg.SystemStatus.cpuUsage = 0.24
+            msg.SystemStatus.cpuUsage = random.uniform(0.05, 0.6)
             msg.SystemStatus.storageCapacity = 63242
             msg.SystemStatus.IMU.accX = 0.0
-            msg.SystemStatus.IMU.accY = 2.0
+            msg.SystemStatus.IMU.accY = 1.0
             msg.SystemStatus.IMU.accZ = 0.0
             msg.SystemStatus.IMU.gyroX = 0.0
             msg.SystemStatus.IMU.gyroY = 0.0
             msg.SystemStatus.IMU.gyroZ = 0.0
         case "PowerState":
-            msg.PowerState.V_Battery = 16.4
-            msg.PowerState.I_Battery = 2.52
+            msg.PowerState.V_Battery = random.uniform(14, 16.5)
+            msg.PowerState.I_Battery = random.uniform(1.2, 3)
 
-            msg.PowerState.V_Charge_Input = 36.01
-            msg.PowerState.I_Charge_Input = 0.62
-            msg.PowerState.I_Charge_Battery = 1.26
+            msg.PowerState.V_Charge_Input = random.uniform(35.1, 36.2)
+            msg.PowerState.I_Charge_Input = random.uniform(0.01, 0.6)
+            msg.PowerState.I_Charge_Battery = random.uniform(0.8, 1.2)
 
-            msg.PowerState.V_Rail_12V = 12.2
-            msg.PowerState.I_Rail_12V = 0.93
-            msg.PowerState.V_Rail_5V = 5.12
-            msg.PowerState.I_Rail_5V = 1.62
-            msg.PowerState.V_Rail_3V3 = 3.27
-            msg.PowerState.I_Rail_3V3 = 0.96
+            msg.PowerState.V_Rail_12V = random.uniform(11.5, 12.2)
+            msg.PowerState.I_Rail_12V = random.uniform(0.8,1)
+            msg.PowerState.V_Rail_5V =random.uniform(4.5, 5.2)
+            msg.PowerState.I_Rail_5V = random.uniform(1.0, 2.0)
+            msg.PowerState.V_Rail_3V3 = random.uniform(3.18, 3.65)
+            msg.PowerState.I_Rail_3V3 = random.uniform(0.7, 1.2)
 
             msg.PowerState.powerState = 0x12
         case "CoolingState":
-            msg.CoolingState.TopTEC.TECVoltage = 7.55
-            msg.CoolingState.TopTEC.TECCurrent = 1.77
+            msg.CoolingState.TopTEC.TECVoltage = 6 + 2 * math.sin(time / 5000.0)
+            msg.CoolingState.TopTEC.TECCurrent = random.uniform(0.7, 2.5)
 
-            msg.CoolingState.BottomTEC.TECVoltage = 5.55
-            msg.CoolingState.BottomTEC.TECCurrent = 0.99
+            msg.CoolingState.BottomTEC.TECVoltage = 5 + 3 * math.cos(time / 5000.0)
+            msg.CoolingState.BottomTEC.TECCurrent = random.uniform(0.7, 2.5)
 
-            msg.CoolingState.fan.FanVoltage = 12.01
-            msg.CoolingState.fan.FanCurrent = 0.874
+            msg.CoolingState.fan.FanVoltage = random.uniform(11.5, 12.1)
+            msg.CoolingState.fan.FanCurrent = random.uniform(0.7, 0.9)
 
-            msg.CoolingState.Temp_Top_Cool_Side = 19.93
-            msg.CoolingState.Temp_Bottom_Cool_Side = 20.16
-            msg.CoolingState.Temp_Hot_Side = 44.1
+            msg.CoolingState.Temp_Top_Cool_Side = random.uniform(18, 22)
+            msg.CoolingState.Temp_Bottom_Cool_Side = random.uniform(18, 22)
+            msg.CoolingState.Temp_Hot_Side = random.uniform(35, 50)
 
             msg.CoolingState.overtempEventOccured = 0x00
 
         case "ExperiementState":
-            msg.ExperiementState.boardId = random.choice([0, 1])
+            msg.ExperiementState.boardId = exp_board_state
+            exp_board_state = (exp_board_state + 1) % 2
+
             msg.ExperiementState.sensors.add(
-                averageRawOpticalPower = 0.5,
-                photodiodeVoltage = 0.256,
+                averageRawOpticalPower = random.uniform(0, 20),
+                photodiodeVoltage = random.uniform(0, 3.3),
             )
             msg.ExperiementState.sensors.add(
-                averageRawOpticalPower = 0.1,
-                photodiodeVoltage = 0.152,
+                averageRawOpticalPower = random.uniform(0, 20),
+                photodiodeVoltage = random.uniform(0, 3.3),
             )
             msg.ExperiementState.sensors.add(
-                averageRawOpticalPower = 22.5,
-                photodiodeVoltage = 2.533,
+                averageRawOpticalPower = random.uniform(0, 20),
+                photodiodeVoltage = random.uniform(0, 3.3),
             )
             msg.ExperiementState.sensors.add(
-                averageRawOpticalPower = 0.2,
-                photodiodeVoltage = 0.11,
+                averageRawOpticalPower = random.uniform(0, 20),
+                photodiodeVoltage = random.uniform(0, 3.3),
             )
 
 # example message generation
