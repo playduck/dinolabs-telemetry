@@ -8,13 +8,18 @@ const morgan = require("morgan");
 const opc = require('./opc');
 const io = require('./socket');
 const routes = require("./routes");
-const pb = require("./protobuf")(io)
+const pb = require("./protobuf")
 
 // Logging middleware
 app.use(morgan("dev"));
 
 // Use routes
 app.use(routes);
+
+opc.on("message", (buffer) => {
+  const msg = pb.parseMessage(buffer);
+  io.emit("message", JSON.stringify(msg))
+})
 
 // Start the server
 server.listen(port, () => {

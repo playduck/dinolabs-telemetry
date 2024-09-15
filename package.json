@@ -11,6 +11,8 @@
   "description": "",
   "dependencies": {
     "async": "^3.2.6",
+    "cobs": "^0.2.1",
+    "crc": "^4.3.2",
     "express": "^4.21.0",
     "morgan": "^1.10.0",
     "node-opcua": "^2.132.0",

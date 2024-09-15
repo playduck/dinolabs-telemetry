@@ -1,166 +1,80 @@
-// const {
-//   OPCUAClient,
-//   makeBrowsePath,
-//   AttributeIds,
-//   resolveNodeId,
-//   TimestampsToReturn,
-//   DataValue,
-// } = require("node-opcua");
-// const async = require("async");
+const opcua = require("node-opcua");
+const EventEmitter = require('node:events');
 
-// const endpointUrl = "opc.tcp://0.0.0.0:4840/freeopcua/server/";
+const endpointUrl = "opc.tcp://0.0.0.0:4840/warr/telemetry/server/";
+const namespace = "http://rocketry.warr.com/opcua/server";
 
-// const client = OPCUAClient.create({
-//   endpointMustExist: false,
-// });
+const subscriptionConfig = {
+  requestedPublishingInterval: 500,
+  requestedLifetimeCount: 10,
+  requestedMaxKeepAliveCount: 5,
+  maxNotificationsPerPublish: 10,
+  publishingEnabled: false,
+  priority: 1,
+};
+const monitoredItemConfig = {
+  samplingInterval: 10,
+  discardOldest: true,
+  queueSize: 1,
+};
 
-// client.on("backoff", (retry, delay) =>
-//   console.log(
-//     "still trying to connect to ",
-//     endpointUrl,
-//     ": retry =",
-//     retry,
-//     "next attempt in ",
-//     delay / 1000,
-//     "seconds"
-//   )
-// );
+const client = opcua.OPCUAClient.create({
+  endpointMustExist: false,
+  requestedSessionTimeout: 20000,
+});
 
-// let the_session, the_subscription;
+client.on("backoff", (retry, delay) =>
+  console.log(
+    `still trying to connect to ${endpointUrl}: retry =${retry} next attempt in ${
+      delay / 1000
+    } seconds`
+  )
+);
 
-// async.series(
-//   [
-//     // step 1 : connect to
-//     function (callback) {
-//       console.log("Connection");
-//       client.connect(endpointUrl, function (err) {
-//         if (err) {
-//           console.log(" cannot connect to endpoint :", endpointUrl);
-//         } else {
-//           console.log("connected !");
-//         }
-//         callback(err);
-//       });
-//     },
+const emitter = new EventEmitter();
+let session, namespaceIndex, nodeId;
+client
+  .connect(endpointUrl)
+  .then(() => {
+    console.log("creating session");
+    return client.createSession();
+  })
+  .then((_session) => {
+    session = _session;
+    console.log("reading namespace");
+    return session.readNamespaceArray();
+  })
+  .then(() => {
+    console.log("finding namespace index");
+    return session.getNamespaceIndex(namespace);
+  })
+  .then((_namespaceIndex) => {
+    namespaceIndex = _namespaceIndex;
+    console.log("browsing path for payload id");
+    const path = opcua.makeBrowsePath(
+      "RootFolder",
+      `/Objects/${namespaceIndex}:payload/${namespaceIndex}:dinolabs.${namespaceIndex}:data`
+    );
+    return session.translateBrowsePath([path]);
+  })
+  .then((translated) => {
+    console.log("creating subscription request");
+    nodeId = translated[0].targets[0].targetId;
+    return opcua.ClientSubscription.create(session, subscriptionConfig);
+  })
+  .then((subscription) => {
+    console.log("starting subscription monitoring");
+    subscription.monitorItems(
+      [{ nodeId: nodeId, attributeId: opcua.AttributeIds.Value }],
+      monitoredItemConfig,
+      opcua.TimestampsToReturn.Both,
+      (err, cmig) => {
+        cmig.on("changed", (mi, dv, idx) => {
+          // console.log(dv.value.value);
+          emitter.emit("message", dv.value.value);
+        });
+      }
+    );
+  });
 
-//     // step 2 : createSession
-//     function (callback) {
-//       console.log("create session");
-//       client.createSession(function (err, session) {
-//         if (err) {
-//           return callback(err);
-//         }
-//         the_session = session;
-//         callback();
-//       });
-//     },
-//     // step 3 : browse
-//     // function (callback) {
-//     //   console.log("browsing the root folder");
-//     //   the_session.browse("RootFolder", function (err, browseResult) {
-//     //     if (!err) {
-//     //       console.log(
-//     //         "Browsing rootfolder: (" +
-//     //           browseResult.references.length.toString() +
-//     //           " items)"
-//     //       );
-//     //     //   for (let reference of browseResult.references) {
-//     //     //     console.log(
-//     //     //       reference.browseName.toString(),
-//     //     //       reference.nodeId.toString()
-//     //     //     );
-//     //     //   }
-//     //     }
-//     //     callback(err);
-//     //   });
-//     // },
-
-//     // // step 4 : browse objects folder
-//     // function (callback) {
-//     //   console.log("browsing the objects folder");
-//     //   the_session.browse("ns=0;i=85", function (err, browseResult) {
-//     //     if (!err) {
-//     //       console.log(
-//     //         "Browsing objects folder: (" +
-//     //           browseResult.references.length.toString() +
-//     //           " items)"
-//     //       );
-//     //       for (let reference of browseResult.references) {
-//     //         console.log(
-//     //           reference.browseName.toString(),
-//     //           reference.nodeId.toString()
-//     //         );
-//     //       }
-//     //     }
-//     //     callback(err);
-//     //   });
-//     // },
-
-//     // step 5 : read variables
-//     // function (callback) {
-//     //   console.log("reading variables");
-//     //   the_session.browse("ns=0;i=85", function (err, browseResult) {
-//     //     if (!err) {
-//     //       for (let reference of browseResult.references) {
-//     //         console.log("Name", reference.browseName.toString())
-//     //         if(reference.browseName.name === "MyObject")  {
-//     //             readVariables(reference.nodeId.toString());
-//     //         }
-//     //       }
-//     //     }
-//     //     callback(err);
-//     //   });
-//     // },
-
-//     function(callback)  {
-//         the_session.read( the_session.translateBrowsePath("Objects/MyObject/MyStringVariable"), function (err, dataValue) {
-//             if (!err) {
-//               console.log(reference.browseName.toString() + ": ", dataValue.value.value);
-//         }
-//         callback(err);
-//         });
-//     },
-
-//     function(callback) {
-//         setTimeout(callback, 1 * 1000);
-//     },
-//     // close session
-//     function (callback) {
-//       console.log("closing session");
-//       the_session.close(function (err) {
-//         if (err) {
-//           console.log("closing session failed ?");
-//         }
-//         callback(err);
-//       });
-//     },
-//   ],
-//   function (err) {
-//     if (err) {
-//       console.log(" failure ", err);
-//     } else {
-//       console.log("done!");
-//     }
-//     client.disconnect(function () {});
-//   }
-// );
-
-// function readVariables(nodeId) {
-//     the_session.browse(nodeId, function (err, browseResult) {
-//       if (!err) {
-//         for (let reference of browseResult.references) {
-//         console.log("Reading", reference.nodeClass, reference.browseName, reference.displayName)
-//         //   if (reference.nodeClass === 1) { // 1 = Variable
-//             the_session.read({ nodeId: reference.nodeId, attributeId: AttributeIds.Value }, function (err, dataValue) {
-//               if (!err) {
-//                 console.log(reference.browseName.toString() + ": ", dataValue.value.value);
-//               }
-//             });
-//         //   } else if (reference.nodeClass === 2) { // 2 = Object
-//             readVariables(reference.nodeId);
-//         //   }
-//         }
-//       }
-
-//     });
-//   }
+module.exports = emitter;

@@ -1,7 +1,7 @@
 import zlib # crc32
 import datetime # generate timestmap
 from cobs import cobs # COBS endoding
-import proto.payload_pb2 as payload # generated protobuf description
+import data.proto.payload_pb2 as payload # generated protobuf description
 
 ## BEGIN DEBUG FUNCTIONS ##
 
@@ -65,15 +65,15 @@ def debug_parse_buffer(buffer: bytearray) -> None:
 # get a fresh POSIX compliant __timestamp
 def __timestamp() -> int:
     # this avoid immsgementation specifics from time.time()
-    unix_timestamp = int(datetime.datetime.now().timestamp())
+    unix_timestamp = int(datetime.datetime.now().timestamp()) * 1000
     return unix_timestamp
 
 CRC_LENGTH_BYTES = 4
 CRC_BUFFER_OFFSET_BYTES = 1
 def __calculate_crc(buffer: bytearray) -> int:
     # first 5 bytes are: 1 byte flag field, 4 crc bytes
-    buffer_without_crc = buffer[CRC_BUFFER_OFFSET_BYTES + CRC_LENGTH_BYTES:]
-    crc32 = zlib.crc32(buffer_without_crc)
+    buffer_without_crc = buffer[CRC_BUFFER_OFFSET_BYTES + CRC_LENGTH_BYTES : ]
+    crc32 = zlib.crc32(buffer_without_crc, 0)
     return crc32
 
 # calculate and prepend the CRC32 from a serialized protobuf
@@ -108,9 +108,19 @@ def serialize(msg: payload.PayloadPacakge) -> bytearray:
     return buffer
 
 ## BEGIN EXAMPLE FUNCTIONS ##
+MESSAGE_TYPES = ["SystemStatus","PowerState","CoolingState","ExperiementState"]
+
+# generate an encoded buffer of a random type
+def example_generate_random_buffer() -> bytearray:
+    import random
+    msg = payload.PayloadPacakge()
+    example_populate_data(msg, random.choice(MESSAGE_TYPES))
+    buffer = serialize(msg)
+    return buffer
 
 # populate a protobuf with dummy datr for a given type
-def populate_data(msg: payload.PayloadPacakge, type: str) -> payload.PayloadPacakge:
+def example_populate_data(msg: payload.PayloadPacakge, type: str) -> payload.PayloadPacakge:
+    import random
     match(type):
         case "SystemStatus":
             # populate data
@@ -158,7 +168,7 @@ def populate_data(msg: payload.PayloadPacakge, type: str) -> payload.PayloadPaca
             msg.CoolingState.overtempEventOccured = 0x00
 
         case "ExperiementState":
-            msg.ExperiementState.boardId = 1 # top or bottom
+            msg.ExperiementState.boardId = random.choice([0, 1])
             msg.ExperiementState.sensors.add(
                 averageRawOpticalPower = 0.5,
                 photodiodeVoltage = 0.256,
@@ -177,14 +187,13 @@ def populate_data(msg: payload.PayloadPacakge, type: str) -> payload.PayloadPaca
             )
 
 # example message generation
-def generate_package():
+def example_generate_package():
 
-    message_types = ["SystemStatus","PowerState","CoolingState","ExperiementState"]
-
-    for message_type in message_types:
+    for message_type in MESSAGE_TYPES:
         print(debug_center_string(message_type))
+
         msg = payload.PayloadPacakge() # create the protobuf
-        populate_data(msg, message_type) # add the data
+        example_populate_data(msg, message_type) # add the data
         buffer = serialize(msg) # serialize to wire-ready format
 
         print(debug_center_string("Serialized Buffer"))
@@ -193,4 +202,4 @@ def generate_package():
 
 # script entry point
 if __name__ == "__main__":
-    generate_package()
+    example_generate_package()
