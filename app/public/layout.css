@@ -4,7 +4,7 @@ main {
   grid-template-rows: repeat(7, 1fr);
   gap: 10px;
   margin: 0 10px;
-  height: 88vh;
+  height: 87vh;
 }
 
 main>div {
@@ -189,10 +189,6 @@ main>div:nth-child(7) {
     grid-template-rows: 1fr 2fr;
   }
   #power-rails {
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: 1fr;
-  }
-  #power-rails > *:nth-child(-n + 4)  {
-    align-self: unset!important;
+    padding-top: 2.5em;
   }
 }

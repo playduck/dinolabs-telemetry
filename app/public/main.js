@@ -975,7 +975,7 @@ detectColorScheme();
     socketClient.onMessage(parseMessage);
   } else  {
     const demoModeIndicator = document.getElementById("demo-mode");
-    demoModeIndicator.style.visibility = "visible";
+    demoModeIndicator.style.display = "block";
 
     function update() {
       const t = Date.now();

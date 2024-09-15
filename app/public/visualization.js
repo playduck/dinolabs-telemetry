@@ -51,11 +51,11 @@ function createValueUnitElement(name, unit, unitText) {
 document.addEventListener("DOMContentLoaded", () => {
   canvas = document.getElementById("canvas-3d");
 
-  const scene = new THREE.Scene();
+  scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(getComputedStyle(document.body).getPropertyValue("--very-light-gray"), 0.05);
 
   camera = new THREE.PerspectiveCamera(50, canvas.getBoundingClientRect().width / canvas.getBoundingClientRect().height, 0.1, 1000);
-  camera.position.set(5.5,2,1.5);
+  camera.position.set(5.5,4,1.5);
   camera.layers.enableAll();
 
   renderer = new THREE.WebGLRenderer({antialias: true,alpha: false});
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
   controls.minDistance = 1;
   controls.maxDistance = 10;
   controls.enableDamping = false;
-  controls.target.set(0, 1.25, 0);
+  controls.target.set(0.5, 1.4, 0);
   controls.update();
 
   const grid = new THREE.GridHelper(100, 570, 0xa9a9a9, 0x9c9c9c);
