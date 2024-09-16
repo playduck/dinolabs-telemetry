@@ -7,7 +7,7 @@ package dinolabs;
 option optimize_for = LITE_RUNTIME;
 
 enum Versions {
-  Version_Unkown = 0;
+  Version_Unknown = 0;
   Version_1 = 1;
 }
 
@@ -16,7 +16,6 @@ message PayloadPacakge {
     fixed32 crc32 = 1;
     Versions version = 2;
     uint64 timestamp = 3;
-    // uint64 timestamp = 3 [ (nanopb).int_size = IS_64 ];
 
     oneof payload {
         PowerBoard PowerState = 4;
@@ -44,7 +43,6 @@ message PowerBoard {
     int32 I_Rail_3V3 = 11;
 
     uint32 powerState = 12;  /* power good and charge source */
-    // uint32 powerState = 12 [ (nanopb).int_size = IS_8 ];  /* power good and charge source */
 }
 
 message ExperimentSensor {
@@ -55,7 +53,6 @@ message ExperimentSensor {
 message ExperimentBoard {
     uint32 boardId = 1;
     repeated ExperimentSensor sensors = 2;
-    // uint32 boardId = 1 [ (nanopb).int_size = IS_8 ];
     // repeated ExperimentSensor sensors = 2 [ (nanopb).max_count = 4 ];
 }
 
@@ -80,7 +77,6 @@ message CoolingSystem {
 
     /* did overtemp event occour since last message?, LSB=Top Overheat, LSB+1=Bottom Overheat */
     uint32 overtempEventOccured = 8;
-    // uint32 overtempEventOccured = 8 [ (nanopb).int_size = IS_8 ];
 }
 
 message IMU {
