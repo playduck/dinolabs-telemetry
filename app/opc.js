@@ -25,14 +25,18 @@ const client = opcua.OPCUAClient.create({
 
 client.on("backoff", (retry, delay) =>
   console.log(
-    `still trying to connect to ${endpointUrl}: retry =${retry} next attempt in ${
-      delay / 1000
-    } seconds`
+    `still trying to connect to ${endpointUrl}: retry =${retry} next attempt in ${delay / 1000} seconds`
   )
 );
 
+client.on("after_reconnection", (err) => {
+  console.log("after_reconnection");
+  // automatic subscription transfer attempt must fail first
+  setTimeout(subscribe, 1000);
+})
+
 const emitter = new EventEmitter();
-let session, namespaceIndex, nodeId;
+let session, namespaceIndex, nodeId, subscription;
 client
   .connect(endpointUrl)
   .then(() => {
@@ -60,9 +64,14 @@ client
   .then((translated) => {
     console.log("creating subscription request");
     nodeId = translated[0].targets[0].targetId;
-    return opcua.ClientSubscription.create(session, subscriptionConfig);
-  })
-  .then((subscription) => {
+    subscribe();
+});
+
+
+function subscribe()  {
+  console.log("creating subscription request");
+
+  subscription = opcua.ClientSubscription.create(session, subscriptionConfig)
     console.log("starting subscription monitoring");
     subscription.monitorItems(
       [{ nodeId: nodeId, attributeId: opcua.AttributeIds.Value }],
@@ -75,6 +84,6 @@ client
         });
       }
     );
-  });
+}
 
-module.exports = emitter;
+module.exports = {emitter, subscribe};

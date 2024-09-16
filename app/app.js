@@ -16,7 +16,7 @@ app.use(morgan("dev"));
 // Use routes
 app.use(routes);
 
-opc.on("message", (buffer) => {
+opc.emitter.on("message", (buffer) => {
   const msg = pb.parseMessage(buffer);
   io.emit("message", JSON.stringify(msg))
 })
