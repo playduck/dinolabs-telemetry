@@ -1,0 +1,15 @@
+{
+    "opc": {
+        "endpoint_url": "opc.tcp://0.0.0.0:4840/warr/telemetry/server/",
+        "namespace_uri": "http://rocketry.warr.com/opcua/server",
+        "requestedInterval": 25,
+        "browsePathTemplate": "/Objects/{namespaceIndex}:payload/{namespaceIndex}:dinolabs.{namespaceIndex}:data"
+    },
+    "proto": {
+        "definition": "./proto/payload.proto",
+        "cobs_length": 2048
+    },
+    "server": {
+        "port": 8080
+    }
+}

@@ -1,11 +1,12 @@
+const config = require("./config.json");
 const path = require("path");
 const protobuf = require("protobufjs");
 const cobs = require("cobs");
 const zlib = require("zlib");
 
-cobs.maxLength = 1024;
+cobs.maxLength = config.proto.cobs_length;
 
-const protobufDefinition = path.join(__dirname, "./proto/payload.proto");
+const protobufDefinition = path.join(__dirname, config.proto.definition);
 let decodeMessage = () => {
     console.log("protobuf uninitilized");
     return undefined;

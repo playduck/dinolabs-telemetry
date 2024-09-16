@@ -1,9 +1,10 @@
-const port = 3000;
-
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
 const morgan = require("morgan");
+const ip = require("ip");
+
+const config = require("./config.json");
 
 const opc = require('./opc');
 const io = require('./socket');
@@ -22,7 +23,7 @@ opc.emitter.on("message", (buffer) => {
 })
 
 // Start the server
-server.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+server.listen(config.server.port, () => {
+  console.log(`Server is running at http://${ip.address()}:${config.server.port}/`);
 });
 io.listen(server);
