@@ -12,6 +12,7 @@ import socketClient from './socket-client.js';
 const demoMode = false;
 const demoLoopIntervalMs = 250;
 const uiUpdateLoopIntervalMs = 100;
+const SCALING_FACTOR = 100.0;
 
 /* scrollback plot count  */
 const globalHistory = 50;
@@ -783,13 +784,13 @@ function init() {
 
 function setExpPlot(board, i, sensor) {
   const maxVal = 20.0
-  const value = sensor.averageRawOpticalPower;
+  const value = sensor.averageRawOpticalPower  / SCALING_FACTOR;
 
   chambers[i].sparkline.setData(addAndConfine(chambers[i].sparkline.data, value, experimentHistory));
   chambers[i].chamber.style.setProperty("--level",`${100 - Math.min(Math.max((value / maxVal) * 100, 0), 100)}%`);
 
-  chambers[i].irradianceValue.innerText = formatValue(sensor.averageRawOpticalPower);
-  chambers[i].voltageValue.innerText = formatValue(sensor.photodiodeVoltage);
+  chambers[i].irradianceValue.innerText = formatValue(value);
+  chambers[i].voltageValue.innerText = formatValue(sensor.photodiodeVoltage  / SCALING_FACTOR);
 }
 
 function parseMessage(message)  {
@@ -802,26 +803,26 @@ function parseMessage(message)  {
   switch(messageType) {
     case "PowerState":
       const newPowerData = [
-          messageObject.PowerState.V_Battery,
-          messageObject.PowerState.I_Battery,
-          messageObject.PowerState.V_Charge_Input,
-          messageObject.PowerState.I_Charge_Input,
+          messageObject.PowerState.V_Battery / SCALING_FACTOR,
+          messageObject.PowerState.I_Battery / SCALING_FACTOR,
+          messageObject.PowerState.V_Charge_Input / SCALING_FACTOR,
+          messageObject.PowerState.I_Charge_Input / SCALING_FACTOR,
         ];
         powerPlot.setData(
           addAndConfine(powerPlot.data, newPowerData, PowerHistory)
         );
-        setPowerBlockValues("RailBat", messageObject.PowerState.V_Battery, messageObject.PowerState.I_Battery,);
-        setPowerBlockValues("RailChrgIn", messageObject.PowerState.V_Charge_Input, messageObject.PowerState.I_Charge_Input);
-        setPowerBlockValues("RailChrgOut", messageObject.PowerState.V_Battery, messageObject.PowerState.I_Charge_Battery);
+        setPowerBlockValues("RailBat", messageObject.PowerState.V_Battery / SCALING_FACTOR, messageObject.PowerState.I_Battery / SCALING_FACTOR);
+        setPowerBlockValues("RailChrgIn", messageObject.PowerState.V_Charge_Input / SCALING_FACTOR, messageObject.PowerState.I_Charge_Input / SCALING_FACTOR);
+        setPowerBlockValues("RailChrgOut", messageObject.PowerState.V_Battery / SCALING_FACTOR, messageObject.PowerState.I_Charge_Battery / SCALING_FACTOR);
 
-        setPowerBlockValues("Rail12V", messageObject.PowerState.V_Rail_12V, messageObject.PowerState.I_Rail_12V);
-        setPowerBlockValues("Rail5V", messageObject.PowerState.V_Rail_5V, messageObject.PowerState.I_Rail_5V);
-        setPowerBlockValues("Rail3V3", messageObject.PowerState.V_Rail_3V3, messageObject.PowerState.I_Rail_3V3);
+        setPowerBlockValues("Rail12V", messageObject.PowerState.V_Rail_12V / SCALING_FACTOR, messageObject.PowerState.I_Rail_12V / SCALING_FACTOR);
+        setPowerBlockValues("Rail5V", messageObject.PowerState.V_Rail_5V / SCALING_FACTOR, messageObject.PowerState.I_Rail_5V / SCALING_FACTOR);
+        setPowerBlockValues("Rail3V3", messageObject.PowerState.V_Rail_3V3 / SCALING_FACTOR, messageObject.PowerState.I_Rail_3V3 / SCALING_FACTOR);
 
-        batteryVoltageLabel.setValue(formatValue(messageObject.PowerState.V_Battery));
-        chargePowerInLabel.setValue(formatValue(messageObject.PowerState.V_Charge_Input * messageObject.PowerState.I_Charge_Input));
+        batteryVoltageLabel.setValue(formatValue(messageObject.PowerState.V_Battery / SCALING_FACTOR));
+        chargePowerInLabel.setValue(formatValue(messageObject.PowerState.V_Charge_Input / SCALING_FACTOR * messageObject.PowerState.I_Charge_Input / SCALING_FACTOR));
 
-        switch(messageObject.PowerState.powerState & 0x0f)  {
+        switch(messageObject.PowerState.powerState & 0x03)  {
           case 0:
             chargeSource.innerText = "none";
             break;
@@ -836,7 +837,7 @@ function parseMessage(message)  {
             break;
         }
 
-        if(messageObject.PowerState.powerState & 0x10)  {
+        if(messageObject.PowerState.powerState & 0x04)  {
           powerGood.innerText = "Good";
           powerGood.classList.add("good");
           powerGood.classList.remove("fail");
@@ -854,46 +855,46 @@ function parseMessage(message)  {
         }
       break;
     case "CoolingState":
-      const newTempData = [messageObject.CoolingState.Temp_Top_Cool_Side, messageObject.CoolingState.Temp_Bottom_Cool_Side, messageObject.CoolingState.Temp_Hot_Side];
+      const newTempData = [messageObject.CoolingState.Temp_Top_Cool_Side / SCALING_FACTOR, messageObject.CoolingState.Temp_Bottom_Cool_Side / SCALING_FACTOR, messageObject.CoolingState.Temp_Hot_Side / SCALING_FACTOR];
       tempPlot.setData(addAndConfine(tempPlot.data, newTempData, TempHistory));
 
-      coldSideTopValue.innerText = formatValue(messageObject.CoolingState.Temp_Top_Cool_Side);
-      coldSideBotValue.innerText = formatValue(messageObject.CoolingState.Temp_Bottom_Cool_Side);
-      hotSideValue.innerText = formatValue(messageObject.CoolingState.Temp_Hot_Side);
+      coldSideTopValue.innerText = formatValue(messageObject.CoolingState.Temp_Top_Cool_Side  / SCALING_FACTOR);
+      coldSideBotValue.innerText = formatValue(messageObject.CoolingState.Temp_Bottom_Cool_Side  / SCALING_FACTOR);
+      hotSideValue.innerText = formatValue(messageObject.CoolingState.Temp_Hot_Side  / SCALING_FACTOR);
 
       coldSideTopGraph.style.setProperty(
         "--level",
-        `${map(messageObject.CoolingState.Temp_Top_Cool_Side, 0, 40, 0, 100)}%`
+        `${map(messageObject.CoolingState.Temp_Top_Cool_Side / SCALING_FACTOR, 0, 40, 0, 100)}%`
       );
       coldSideBotGraph.style.setProperty(
         "--level",
-        `${map(messageObject.CoolingState.Temp_Bottom_Cool_Side, 0, 40, 0, 100)}%`
+        `${map(messageObject.CoolingState.Temp_Bottom_Cool_Side / SCALING_FACTOR, 0, 40, 0, 100)}%`
       );
       hotSideGraph.style.setProperty(
         "--level",
-        `${map(messageObject.CoolingState.Temp_Hot_Side, 0, 80, 0, 100)}%`
+        `${map(messageObject.CoolingState.Temp_Hot_Side / SCALING_FACTOR, 0, 80, 0, 100)}%`
       );
 
-      coldSideTopLabel.setValue(formatValue(messageObject.CoolingState.Temp_Top_Cool_Side));
-      coldSideBottomLabel.setValue(formatValue(messageObject.CoolingState.Temp_Bottom_Cool_Side));
-      hotSideLabel.setValue(formatValue(messageObject.CoolingState.Temp_Hot_Side));
+      coldSideTopLabel.setValue(formatValue(messageObject.CoolingState.Temp_Top_Cool_Side / SCALING_FACTOR));
+      coldSideBottomLabel.setValue(formatValue(messageObject.CoolingState.Temp_Bottom_Cool_Side / SCALING_FACTOR));
+      hotSideLabel.setValue(formatValue(messageObject.CoolingState.Temp_Hot_Side / SCALING_FACTOR));
 
       const newTecData = [
-        messageObject.CoolingState.TopTEC.TECVoltage,
-        messageObject.CoolingState.TopTEC.TECCurrent,
-        messageObject.CoolingState.BottomTEC.TECVoltage,
-        messageObject.CoolingState.BottomTEC.TECCurrent,
-        messageObject.CoolingState.fan.FanVoltage,
-        messageObject.CoolingState.fan.FanCurrent
+        messageObject.CoolingState.TopTEC.TECVoltage / SCALING_FACTOR,
+        messageObject.CoolingState.TopTEC.TECCurrent / SCALING_FACTOR,
+        messageObject.CoolingState.BottomTEC.TECVoltage / SCALING_FACTOR,
+        messageObject.CoolingState.BottomTEC.TECCurrent / SCALING_FACTOR,
+        messageObject.CoolingState.fan.FanVoltage / SCALING_FACTOR,
+        messageObject.CoolingState.fan.FanCurrent / SCALING_FACTOR
       ];
       tecPlot.setData(addAndConfine(tecPlot.data, newTecData, TECHistory));
-      setPowerBlockValues("tec-top", messageObject.CoolingState.TopTEC.TECVoltage, messageObject.CoolingState.TopTEC.TECCurrent);
-      setPowerBlockValues("tec-bot", messageObject.CoolingState.BottomTEC.TECVoltage, messageObject.CoolingState.BottomTEC.TECCurrent);
-      setPowerBlockValues("fan", messageObject.CoolingState.fan.FanVoltage, messageObject.CoolingState.fan.FanCurrent);
+      setPowerBlockValues("tec-top", messageObject.CoolingState.TopTEC.TECVoltage / SCALING_FACTOR, messageObject.CoolingState.TopTEC.TECCurrent / SCALING_FACTOR);
+      setPowerBlockValues("tec-bot", messageObject.CoolingState.BottomTEC.TECVoltage / SCALING_FACTOR, messageObject.CoolingState.BottomTEC.TECCurrent / SCALING_FACTOR);
+      setPowerBlockValues("fan", messageObject.CoolingState.fan.FanVoltage / SCALING_FACTOR, messageObject.CoolingState.fan.FanCurrent / SCALING_FACTOR);
       break;
     case "SystemStatus":
       // TODO format value strings
-      const cpu = (Math.round(messageObject.SystemStatus.cpuUsage * 100 * 1000) / 1000).toFixed(2);
+      const cpu = (messageObject.SystemStatus.cpuUsage / SCALING_FACTOR).toFixed(2);
       errorCount.innerText = messageObject.SystemStatus.rawErrorCount;
 
       payloadState.innerText = Number(messageObject.SystemStatus.currentPayloadState).toString(16).padStart(2,"0");
@@ -904,18 +905,18 @@ function parseMessage(message)  {
       storageCapacity.innerText = `${messageObject.SystemStatus.storageCapacity}MB`;
 
       const newGyroData = [
-        messageObject.SystemStatus.IMU.gyroX,
-        messageObject.SystemStatus.IMU.gyroY,
-        messageObject.SystemStatus.IMU.gyroZ,
+        messageObject.SystemStatus.IMU.gyroX / SCALING_FACTOR,
+        messageObject.SystemStatus.IMU.gyroY / SCALING_FACTOR,
+        messageObject.SystemStatus.IMU.gyroZ / SCALING_FACTOR,
       ];
       imuGyrolSparkline.setData(
         addAndConfine(imuGyrolSparkline.data, newGyroData, IMUHistory)
       );
 
       const newAccelData = [
-        messageObject.SystemStatus.IMU.accX,
-        messageObject.SystemStatus.IMU.accY,
-        messageObject.SystemStatus.IMU.accZ,
+        messageObject.SystemStatus.IMU.accX / SCALING_FACTOR,
+        messageObject.SystemStatus.IMU.accY / SCALING_FACTOR,
+        messageObject.SystemStatus.IMU.accZ / SCALING_FACTOR,
       ];
 
       newAccelData.push(

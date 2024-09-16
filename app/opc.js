@@ -5,7 +5,7 @@ const endpointUrl = "opc.tcp://0.0.0.0:4840/warr/telemetry/server/";
 const namespace = "http://rocketry.warr.com/opcua/server";
 
 const subscriptionConfig = {
-  requestedPublishingInterval: 500,
+  requestedPublishingInterval: 25,
   requestedLifetimeCount: 10,
   requestedMaxKeepAliveCount: 5,
   maxNotificationsPerPublish: 10,
@@ -32,7 +32,7 @@ client.on("backoff", (retry, delay) =>
 client.on("after_reconnection", (err) => {
   console.log("after_reconnection");
   // automatic subscription transfer attempt must fail first
-  setTimeout(subscribe, 1000);
+  // setTimeout(subscribe, 1000);
 })
 
 const emitter = new EventEmitter();

@@ -4,6 +4,7 @@ from cobs import cobs # COBS endoding
 import data.proto.payload_pb2 as payload # generated protobuf description
 
 ## BEGIN DEBUG FUNCTIONS ##
+import random
 
 DEBUG_WIDTH_CHARS = 80
 def debug_center_string(string) -> str:
@@ -60,12 +61,16 @@ def debug_parse_buffer(buffer: bytearray) -> None:
     else:
         print("Message parsed successfully")
 
+def debug_uniform(low: float, high: float) -> int:
+    return int(round(random.uniform(low, high) * FLOAT_OFFSET, 0))
+
 ## BEGIN API FUNCTIONS ##
+FLOAT_OFFSET = 100.0
 
 # get a fresh POSIX compliant __timestamp
 def __timestamp() -> int:
     # this avoid immsgementation specifics from time.time()
-    unix_timestamp = int(datetime.datetime.now().timestamp()) * 1000
+    unix_timestamp = int(round(datetime.datetime.now().timestamp() * 1000, 0))
     return unix_timestamp
 
 CRC_LENGTH_BYTES = 4
@@ -127,7 +132,6 @@ exp_board_state = 0
 # populate a protobuf with dummy datr for a given type
 def example_populate_data(msg: payload.PayloadPacakge, type: str) -> payload.PayloadPacakge:
     global exp_board_state
-    import random
     import math
 
     time = __timestamp()
@@ -138,43 +142,43 @@ def example_populate_data(msg: payload.PayloadPacakge, type: str) -> payload.Pay
             msg.SystemStatus.currentPayloadState = 0x01
             msg.SystemStatus.lastFCSState = 0x05
             msg.SystemStatus.rawErrorCount = 0
-            msg.SystemStatus.cpuUsage = random.uniform(0.05, 0.6)
+            msg.SystemStatus.cpuUsage = debug_uniform(0, 100)
             msg.SystemStatus.storageCapacity = 63242
-            msg.SystemStatus.IMU.accX = 0.0
-            msg.SystemStatus.IMU.accY = 1.0
-            msg.SystemStatus.IMU.accZ = 0.0
-            msg.SystemStatus.IMU.gyroX = 0.0
-            msg.SystemStatus.IMU.gyroY = 0.0
-            msg.SystemStatus.IMU.gyroZ = 0.0
+            msg.SystemStatus.IMU.accX = int(round(0.0 * FLOAT_OFFSET, 0))
+            msg.SystemStatus.IMU.accY = int(round(1.0 * FLOAT_OFFSET, 0))
+            msg.SystemStatus.IMU.accZ = int(round(0.0 * FLOAT_OFFSET, 0))
+            msg.SystemStatus.IMU.gyroX = int(round(0.0 * FLOAT_OFFSET, 0))
+            msg.SystemStatus.IMU.gyroY = int(round(0.0 * FLOAT_OFFSET, 0))
+            msg.SystemStatus.IMU.gyroZ = int(round(0.0 * FLOAT_OFFSET, 0))
         case "PowerState":
-            msg.PowerState.V_Battery = random.uniform(14, 16.5)
-            msg.PowerState.I_Battery = random.uniform(1.2, 3)
+            msg.PowerState.V_Battery = debug_uniform(14, 16.5)
+            msg.PowerState.I_Battery = debug_uniform(1.2, 3)
 
-            msg.PowerState.V_Charge_Input = random.uniform(35.1, 36.2)
-            msg.PowerState.I_Charge_Input = random.uniform(0.01, 0.6)
-            msg.PowerState.I_Charge_Battery = random.uniform(0.8, 1.2)
+            msg.PowerState.V_Charge_Input = debug_uniform(35.1, 36.2)
+            msg.PowerState.I_Charge_Input = debug_uniform(0.01, 0.6)
+            msg.PowerState.I_Charge_Battery = debug_uniform(0.8, 1.2)
 
-            msg.PowerState.V_Rail_12V = random.uniform(11.5, 12.2)
-            msg.PowerState.I_Rail_12V = random.uniform(0.8,1)
-            msg.PowerState.V_Rail_5V =random.uniform(4.5, 5.2)
-            msg.PowerState.I_Rail_5V = random.uniform(1.0, 2.0)
-            msg.PowerState.V_Rail_3V3 = random.uniform(3.18, 3.65)
-            msg.PowerState.I_Rail_3V3 = random.uniform(0.7, 1.2)
+            msg.PowerState.V_Rail_12V = debug_uniform(11.5, 12.2)
+            msg.PowerState.I_Rail_12V = debug_uniform(0.8,1)
+            msg.PowerState.V_Rail_5V =debug_uniform(4.5, 5.2)
+            msg.PowerState.I_Rail_5V = debug_uniform(1.0, 2.0)
+            msg.PowerState.V_Rail_3V3 = debug_uniform(3.18, 3.65)
+            msg.PowerState.I_Rail_3V3 = debug_uniform(0.7, 1.2)
 
-            msg.PowerState.powerState = 0x12
+            msg.PowerState.powerState = 0b0000_0110
         case "CoolingState":
-            msg.CoolingState.TopTEC.TECVoltage = 6 + 2 * math.sin(time / 5000.0)
-            msg.CoolingState.TopTEC.TECCurrent = random.uniform(0.7, 2.5)
+            msg.CoolingState.TopTEC.TECVoltage = int((6 + 2 * math.sin(time / 5000.0)) * FLOAT_OFFSET)
+            msg.CoolingState.TopTEC.TECCurrent = debug_uniform(0.7, 2.5)
 
-            msg.CoolingState.BottomTEC.TECVoltage = 5 + 3 * math.cos(time / 5000.0)
-            msg.CoolingState.BottomTEC.TECCurrent = random.uniform(0.7, 2.5)
+            msg.CoolingState.BottomTEC.TECVoltage = int((5 + 3 * math.cos(time / 5000.0)) * FLOAT_OFFSET)
+            msg.CoolingState.BottomTEC.TECCurrent = debug_uniform(0.7, 2.5)
 
-            msg.CoolingState.fan.FanVoltage = random.uniform(11.5, 12.1)
-            msg.CoolingState.fan.FanCurrent = random.uniform(0.7, 0.9)
+            msg.CoolingState.fan.FanVoltage = debug_uniform(11.5, 12.1)
+            msg.CoolingState.fan.FanCurrent = debug_uniform(0.7, 0.9)
 
-            msg.CoolingState.Temp_Top_Cool_Side = random.uniform(18, 22)
-            msg.CoolingState.Temp_Bottom_Cool_Side = random.uniform(18, 22)
-            msg.CoolingState.Temp_Hot_Side = random.uniform(35, 50)
+            msg.CoolingState.Temp_Top_Cool_Side = debug_uniform(18, 22)
+            msg.CoolingState.Temp_Bottom_Cool_Side = debug_uniform(18, 22)
+            msg.CoolingState.Temp_Hot_Side = debug_uniform(35, 50)
 
             msg.CoolingState.overtempEventOccured = 0x00
 
@@ -183,20 +187,20 @@ def example_populate_data(msg: payload.PayloadPacakge, type: str) -> payload.Pay
             exp_board_state = (exp_board_state + 1) % 2
 
             msg.ExperiementState.sensors.add(
-                averageRawOpticalPower = random.uniform(0, 20),
-                photodiodeVoltage = random.uniform(0, 3.3),
+                averageRawOpticalPower = debug_uniform(0, 20),
+                photodiodeVoltage = debug_uniform(0, 3.3),
             )
             msg.ExperiementState.sensors.add(
-                averageRawOpticalPower = random.uniform(0, 20),
-                photodiodeVoltage = random.uniform(0, 3.3),
+                averageRawOpticalPower = debug_uniform(0, 20),
+                photodiodeVoltage = debug_uniform(0, 3.3),
             )
             msg.ExperiementState.sensors.add(
-                averageRawOpticalPower = random.uniform(0, 20),
-                photodiodeVoltage = random.uniform(0, 3.3),
+                averageRawOpticalPower = debug_uniform(0, 20),
+                photodiodeVoltage = debug_uniform(0, 3.3),
             )
             msg.ExperiementState.sensors.add(
-                averageRawOpticalPower = random.uniform(0, 20),
-                photodiodeVoltage = random.uniform(0, 3.3),
+                averageRawOpticalPower = debug_uniform(0, 20),
+                photodiodeVoltage = debug_uniform(0, 3.3),
             )
 
 # example message generation

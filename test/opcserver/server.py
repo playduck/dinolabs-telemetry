@@ -38,7 +38,7 @@ async def main():
 
         while True:
             try:
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(0.25)
                 buffer = source.example_generate_random_buffer()
                 await data_var.write_value(ua.DataValue(buffer))
             except ua.UaError as e:
