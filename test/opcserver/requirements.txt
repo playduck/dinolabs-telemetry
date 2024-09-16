@@ -2,7 +2,9 @@ aiofiles==24.1.0
 aiosqlite==0.20.0
 asyncua==1.1.5
 cffi==1.17.1
+cobs==1.2.1
 cryptography==43.0.1
+protobuf==5.28.1
 pycparser==2.22
 pyOpenSSL==24.2.1
 python-dateutil==2.9.0.post0
