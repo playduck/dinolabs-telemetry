@@ -301,7 +301,7 @@ footer {
 
 .floating {
     background-color: var(--warr-blue-1);
-    color: var(--background);
+    color: var(--text)!important;
     padding: 0.5ex;
     display: grid;
     grid-template-columns: 1;
@@ -315,17 +315,9 @@ footer {
     font-size: 0.7em;
 }
 .floating .unit {
-    color: var(--light-gray)!important;
+    color: var(--very-dark-gray)!important;
     grid-column: 2;
 }
-
-
-
-
-
-
-
-
 
 .irradiance sup {
     font-size: 0.8em;
