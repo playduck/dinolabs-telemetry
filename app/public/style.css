@@ -151,7 +151,7 @@ button:active {
 #info {
     font-size: 0.9em !important;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(2, 1fr);
     column-gap: 0.5em;
 }
@@ -344,8 +344,12 @@ footer {
     top: -1.25rem;
     left: 50%;
     transform: translateX(-50%);
+    z-index: 999;
 }
 
+#imu::before {
+    content: "6-Axis IMU"!important;
+}
 #temperature::before    {
     content: "Temperature Subsystem"!important;
 }
@@ -359,9 +363,6 @@ footer {
     content: "Message Log"!important;
 }
 
-#imu::before {
-    content: "6-Axis IMU"!important;
-}
 
 #imu {
     position: relative;
@@ -399,7 +400,7 @@ footer {
 }
 
 #log {
-    overflow: hidden;
+    /* overflow: hidden; */
     max-height: 25vh;
 }
 
@@ -570,7 +571,7 @@ footer {
     right: 0;
     align-items: center;
     justify-content: space-evenly;
-    padding: 1em;
+    padding: 0.5em;
 }
 
 #power-state span {

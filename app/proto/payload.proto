@@ -12,37 +12,36 @@ enum Versions {
 }
 
 /* main trasaction message */
-message PayloadPacakge {
+message PayloadPackage {
     fixed32 crc32 = 1;
-    Versions version = 2;
-    uint64 timestamp = 3;
+    uint64 timestamp = 2;
 
     oneof payload {
-        PowerBoard PowerState = 4;
-        ExperimentBoard ExperiementState = 5;
-        CoolingSystem CoolingState = 6;
-        SystemState SystemStatus = 7;
+        PowerBoard PowerState = 3;
+        ExperimentBoard ExperiementState = 4;
+        CoolingSystem CoolingState = 5;
+        SystemState SystemStatus = 6;
     }
 }
 
 message PowerBoard {
     uint32 V_Battery = 1;
-    int32 I_Battery = 2;
+    int32 I_Battery = 2 ;
 
     uint32 V_Charge_Input = 3;   /* BMS input side voltage (PCB: VChrg) */
-    int32 I_Charge_Input = 4;   /* Current over RAC_SNS into BMS input */
-    int32 I_Charge_Battery = 5; /* Current over RBAT_SNS from BMS output */
+    // int32 I_Charge_Input = 4 [ (nanopb).int_size = IS_16 ];   /* Current over RAC_SNS into BMS input */
+    // int32 I_Charge_Battery = 5 [ (nanopb).int_size = IS_16 ]; /* Current over RBAT_SNS from BMS output */
 
     uint32 V_Rail_12V = 6;
-    int32 I_Rail_12V = 7;
+    int32 I_Rail_12V = 7 ;
 
     uint32 V_Rail_5V = 8;
-    int32 I_Rail_5V = 9;
+    int32 I_Rail_5V = 9 ;
 
-    uint32 V_Rail_3V3 = 10;
-    int32 I_Rail_3V3 = 11;
+    uint32 V_Rail_3V3 = 10 ;
+    int32 I_Rail_3V3 = 11 ;
 
-    uint32 powerState = 12;  /* power good and charge source */
+    uint32 powerState = 12 ;  /* power good and charge source */
 }
 
 message ExperimentSensor {
@@ -52,18 +51,17 @@ message ExperimentSensor {
 
 message ExperimentBoard {
     uint32 boardId = 1;
+    // repeated ExperimentSensor sensors = 2;
     repeated ExperimentSensor sensors = 2;
-    // repeated ExperimentSensor sensors = 2 [ (nanopb).max_count = 4 ];
 }
 
 message TEC {
     uint32 TECVoltage = 1;
-    int32 TECCurrent = 2;
+    int32 TECCurrent = 2 ;
 }
 
 message Fan {
-    uint32 FanVoltage = 1;
-    int32 FanCurrent = 2;
+    uint32 FanPWM = 1;
 }
 
 message CoolingSystem {
@@ -76,13 +74,13 @@ message CoolingSystem {
     int32 Temp_Hot_Side = 6;
 
     /* did overtemp event occour since last message?, LSB=Top Overheat, LSB+1=Bottom Overheat */
-    uint32 overtempEventOccured = 8;
+    // uint32 overtempEventOccured = 8 [ (nanopb).int_size = IS_8 ];
 }
 
 message IMU {
-    int32 accX = 1;
-    int32 accY = 2;
-    int32 accZ = 3;
+    int32 accX = 1 ;
+    int32 accY = 2 ;
+    int32 accZ = 3 ;
     int32 gyroX = 4;
     int32 gyroY = 5;
     int32 gyroZ = 6;
@@ -90,8 +88,8 @@ message IMU {
 
 message SystemState {
   /* TODO: maybe change states to defined enums */
-  uint32 currentPayloadState = 1; /* tbd */
-  uint32 lastFCSState = 2; /* echo back last received state from Rocketry FCS */
+  uint32 currentPayloadState = 1;
+  uint32 lastFCSState = 2;
   uint32 rawErrorCount = 3;
   uint32 cpuUsage = 4;
   uint32 storageCapacity = 5;

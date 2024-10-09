@@ -307,15 +307,15 @@ function animate_data(acc, gyro, dt) {
 
   //  console.log(pitch, roll, yaw)
 
-  if (!(isNaN(pitch) || isNaN(roll) || isNaN(yaw))) {
-    mesh_group.rotation.x = ((1 - alpha) * mesh_group.rotation.x) + (alpha * pitch);
-    mesh_group.rotation.y = ((1 - alpha) * mesh_group.rotation.y) + (alpha * roll);
-    mesh_group.rotation.z = ((1 - alpha) * mesh_group.rotation.z) + (alpha * yaw);
-  } else {
-    roll = 0;
-    pitch = 0;
-    yaw = 0;
-  }
+  // if (!(isNaN(pitch) || isNaN(roll) || isNaN(yaw))) {
+  //   mesh_group.rotation.x = ((1 - alpha) * mesh_group.rotation.x) + (alpha * pitch);
+  //   mesh_group.rotation.y = ((1 - alpha) * mesh_group.rotation.y) + (alpha * roll);
+  //   mesh_group.rotation.z = ((1 - alpha) * mesh_group.rotation.z) + (alpha * yaw);
+  // } else {
+  //   roll = 0;
+  //   pitch = 0;
+  //   yaw = 0;
+  // }
 }
 
 export {

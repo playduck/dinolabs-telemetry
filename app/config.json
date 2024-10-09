@@ -11,5 +11,9 @@
     },
     "server": {
         "port": 8080
+    },
+    "tcp": {
+        "host": "localhost",
+        "port": 8081
     }
 }

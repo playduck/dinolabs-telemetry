@@ -9,10 +9,10 @@ import {
 
 import socketClient from './socket-client.js';
 
-const demoMode = false;
+const demoMode = true;
 const demoLoopIntervalMs = 250;
 const uiUpdateLoopIntervalMs = 100;
-const SCALING_FACTOR = 100.0;
+const SCALING_FACTOR = 1000.0;
 
 /* scrollback plot count  */
 const globalHistory = 50;
@@ -40,6 +40,7 @@ let previousTime = undefined;
 
 let powerGood, chargeSource;
 let errorCount, payloadState, FCSState, cpuUsage, storageCapacity;
+let lastMessageTime;
 
 let colors = {
   "--very-light-gray": undefined,
@@ -92,6 +93,11 @@ function arcurve(level, ath) {
 
 /* format a numeric value to append a prefix (+-) and fix and pad it */
 function formatValue(x) {
+  // Check if the value is NaN or undefined
+  if (typeof x === 'undefined' || isNaN(x)) {
+    x = 0;
+  }
+
   const prefix = x >= 0 ? "+" : ""; // automatic prefix for negative values
   const fixed = Math.abs(x).toFixed(2).split('.');
   const integerPart = fixed[0].padStart(2, "0"); // pad the integer part
@@ -286,7 +292,7 @@ function generateChamber(index, parent) {
       },
       y: {
         auto: false,
-        range: [0, 20],
+        range: [0, 4096],
       },
     },
     legend: {
@@ -604,19 +610,7 @@ function addTECPlot() {
         width: 2,
         scale: "i",
         stroke: colors["--warr-orange"],
-      },
-      {
-        label: "Fan V",
-        width: 2,
-        scale: "v",
-        stroke: colors["--warr-blue-1"]
-      },
-      {
-        label: "Fan I",
-        width: 2,
-        scale: "i",
-        stroke: colors["--warr-red"],
-      },
+      }
     ],
   };
 
@@ -783,17 +777,18 @@ function init() {
 }
 
 function setExpPlot(board, i, sensor) {
-  const maxVal = 20.0
-  const value = sensor.averageRawOpticalPower  / SCALING_FACTOR;
+  const maxVal = 0.256;
+  const value = sensor.photodiodeVoltage / SCALING_FACTOR;
 
   chambers[i].sparkline.setData(addAndConfine(chambers[i].sparkline.data, value, experimentHistory));
   chambers[i].chamber.style.setProperty("--level",`${100 - Math.min(Math.max((value / maxVal) * 100, 0), 100)}%`);
 
   chambers[i].irradianceValue.innerText = formatValue(value);
-  chambers[i].voltageValue.innerText = formatValue(sensor.photodiodeVoltage  / SCALING_FACTOR);
+  chambers[i].voltageValue.innerText = formatValue(sensor.photodiodeVoltage / SCALING_FACTOR);
 }
 
 function parseMessage(message)  {
+  lastMessageTime = Date.now();
   const messageObject = JSON.parse(message);
   const messageType = Object.keys(messageObject)[1];
 
@@ -824,16 +819,19 @@ function parseMessage(message)  {
 
         switch(messageObject.PowerState.powerState & 0x03)  {
           case 0:
-            chargeSource.innerText = "none";
+            chargeSource.innerText = "None";
             break;
           case 1:
-            chargeSource.innerText = "USB PD";
+            chargeSource.innerText = "USB (no PD)";
             break;
           case 2:
+            chargeSource.innerText = "USB PD";
+            break;
+          case 3:
             chargeSource.innerText = "Umbilical";
             break;
           default:
-            chargeSource.innerText = "Unkown";
+            chargeSource.innerText = "Unknown";
             break;
         }
 
@@ -884,13 +882,11 @@ function parseMessage(message)  {
         messageObject.CoolingState.TopTEC.TECCurrent / SCALING_FACTOR,
         messageObject.CoolingState.BottomTEC.TECVoltage / SCALING_FACTOR,
         messageObject.CoolingState.BottomTEC.TECCurrent / SCALING_FACTOR,
-        messageObject.CoolingState.fan.FanVoltage / SCALING_FACTOR,
-        messageObject.CoolingState.fan.FanCurrent / SCALING_FACTOR
       ];
       tecPlot.setData(addAndConfine(tecPlot.data, newTecData, TECHistory));
       setPowerBlockValues("tec-top", messageObject.CoolingState.TopTEC.TECVoltage / SCALING_FACTOR, messageObject.CoolingState.TopTEC.TECCurrent / SCALING_FACTOR);
       setPowerBlockValues("tec-bot", messageObject.CoolingState.BottomTEC.TECVoltage / SCALING_FACTOR, messageObject.CoolingState.BottomTEC.TECCurrent / SCALING_FACTOR);
-      setPowerBlockValues("fan", messageObject.CoolingState.fan.FanVoltage / SCALING_FACTOR, messageObject.CoolingState.fan.FanCurrent / SCALING_FACTOR);
+      document.querySelector('#fan .power-list div:nth-child(2) .value').innerText = formatValue(messageObject.CoolingState.fan.FanPercentage);
       break;
     case "SystemStatus":
       // TODO format value strings
@@ -937,7 +933,7 @@ function parseMessage(message)  {
       );
       break;
     default:
-      console.error(`Unkown messageType ${messageType}`)
+      console.error(`Unknown messageType ${messageType}`)
   }
 }
 
@@ -966,8 +962,7 @@ function detectColorScheme(){
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-
-detectColorScheme();
+  detectColorScheme();
 
   init();
 
@@ -980,6 +975,7 @@ detectColorScheme();
 
     function update() {
       const t = Date.now();
+      lastMessageTime = t;
 
       chambers.forEach((c, i) => {
         const d =
@@ -1090,23 +1086,11 @@ detectColorScheme();
           (Math.random() * 0.1 + 2 + 1 * Math.cos((t / 10000) * 3 * Math.PI)) *
             1000
         ) / 1000,
-        Math.round(
-          (Math.random() * 0.1 +
-            10 +
-            2 * Math.cos((t / 9000) * 2 * Math.PI + 0)) *
-            1000
-        ) / 1000,
-        Math.round(
-          (Math.random() * 0.1 +
-            0.7 +
-            0.3 * Math.cos((t / 11000) * 3 * Math.PI)) *
-            1000
-        ) / 1000,
       ];
       tecPlot.setData(addAndConfine(tecPlot.data, newTecData, TECHistory));
       setPowerBlockValues("tec-top", newTecData[0], newTecData[1]);
       setPowerBlockValues("tec-bot", newTecData[2], newTecData[3]);
-      setPowerBlockValues("fan", newTecData[4], newTecData[5]);
+      document.querySelector('#fan .power-list div:nth-child(2) .value').innerText = formatValue(Math.random() * 100.0);
 
       const newPowerData = [
         Math.round(
@@ -1141,6 +1125,8 @@ detectColorScheme();
   }
 
   /* UI update loop */
+  const lastMsgTime = document.getElementById("last-msg");
+
   setInterval(() => {
     let level = parseFloat(
       getComputedStyle(coldSideTopGraph).getPropertyValue("--level")
@@ -1174,6 +1160,9 @@ detectColorScheme();
       "--ath-level",
       `${arcurve(level, athLevel)}%`
     );
+
+    let delta = Date.now() - lastMessageTime;
+    lastMsgTime.innerText = String(Math.round(delta)).padStart(4, "0");
 
     }, uiUpdateLoopIntervalMs);
 });

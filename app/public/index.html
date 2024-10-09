@@ -83,7 +83,7 @@
     <header id="header">
         <h1 id="name">
           <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 45.7">
-            <defs><style>.g{fill:#0761b0;}.g,.h,.i{stroke-width:0px;}.h{fill:#9bdafa;}.i{fill:#6ab2e1;}</style></defs><g
+            <defs><style>.g{fill:var(--very-dark-gray);}.g,.h,.i{stroke-width:0px;}.h{fill:var(--very-dark-gray);}.i{fill:var(--very-dark-gray);}</style></defs><g
               id="c"><path class="g"
                 d="m23-.4L.2,22.3l22.8,22.8,22.8-22.8L23-.4Zm0,38.8L6.9,22.3,23,6.2l16,16.1-16,16.1Z" /><polygon
                 class="i"
@@ -102,6 +102,10 @@
           <span>displaying dummy data</span>
         </span>
         <div id="info">
+          <div>
+            <label>Last Msg</label>
+            <span id="last-msg">0</span>
+          </div>
           <div>
             <label>Error Count</label>
             <span id="error-count">0</span>
@@ -217,18 +221,12 @@
 
             <section class="power-block" id="fan" title="Fan">
               <div class="power-list">
-                <div style="color: var(--warr-blue-1);">
-                  <span class="value"></span>
-                  <span class="unit voltage">V</span>
-                </div>
-                <div style="color: var(--warr-red);">
-                  <span class="value"></span>
-                  <span class="unit current">A</span>
-                </div>
+                <div></div>
                 <div>
                   <span class="value"></span>
-                  <span class="unit power">W</span>
+                  <span class="unit percentage">%</span>
                 </div>
+                <div></div>
               </div>
             </section>
 

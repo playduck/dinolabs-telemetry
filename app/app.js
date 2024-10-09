@@ -6,7 +6,7 @@ const ip = require("ip");
 
 const config = require("./config.json");
 
-const opc = require('./opc');
+const tcp = require('./tcp');
 const io = require('./socket');
 const routes = require("./routes");
 const pb = require("./protobuf")
@@ -17,7 +17,8 @@ app.use(morgan("dev"));
 // Use routes
 app.use(routes);
 
-opc.emitter.on("message", (buffer) => {
+tcp.emitter.on("message", (buffer) => {
+  console.log(buffer.toString('hex').match(/../g).join(' '));
   const msg = pb.parseMessage(buffer);
   io.emit("message", JSON.stringify(msg))
 })

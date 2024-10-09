@@ -17,10 +17,10 @@ const parseMessage = (x) => {
 }
 
 protobuf.load(protobufDefinition).then( (root) => {
-  const PayloadPacakgeTypes = root.lookupType("dinolabs.PayloadPacakge").oneofs
+  const PayloadPackageTypes = root.lookupType("dinolabs.PayloadPackage").oneofs
     .payload.oneof;
 
-  const PayloadPacakge = root.lookupType("dinolabs.PayloadPacakge");
+  const PayloadPackage = root.lookupType("dinolabs.PayloadPackage");
   const Versions = root.lookupEnum("dinolabs.Versions").values;
 
   let boardId = 0;
@@ -120,20 +120,21 @@ protobuf.load(protobufDefinition).then( (root) => {
         return null;
     }
 
-    const errMsg = PayloadPacakge.verify(payload);
+    const errMsg = PayloadPackage.verify(payload);
     if (errMsg) throw Error(errMsg);
-    const message = PayloadPacakge.create(payload);
-    const buffer = PayloadPacakge.encode(message).finish();
+    const message = PayloadPackage.create(payload);
+    const buffer = PayloadPackage.encode(message).finish();
 
     return buffer;
   }
 
   decodeMessage = (buffer) => {
 
+    console.log("length: ", buffer.length);
     const decodedData = cobs.decode(buffer);
 
     try {
-        const message = PayloadPacakge.toObject(PayloadPacakge.decode(decodedData, decodedData.length - 1), {
+        const message = PayloadPackage.toObject(PayloadPackage.decode(decodedData, decodedData.length - 1), {
             longs: String,
             enums: String,
             defaults: true // default omissions to zero
@@ -142,11 +143,10 @@ protobuf.load(protobufDefinition).then( (root) => {
         calc_crc32 = zlib.crc32(decodedData.subarray(5, decodedData.length - 1), 0);
         if(message.crc32 != calc_crc32) {
             console.error("CRC mismatch");
+        } else  {
+          console.log("CRC match")
         }
-
-        if (Versions[message.version] != Versions.Version_1) {
-            console.error(`Unkown Version ${message.version}`);
-        }
+        console.log(message)
 
         delete message.crc32;
         delete message.version;
