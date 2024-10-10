@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const ip = require('ip');
 const auth = require('basic-auth');
 const bodyParser = require('body-parser');
+const fs = require('fs');
 
 const config = require('../config.json');
 const secrets = require('../secrets.json');
@@ -15,8 +16,15 @@ const pb = require('../common/protobuf')
 
 const TAG = 'INET';
 
+// Create a log file if it does not exist
+const logFile = 'server.log';
+if (!fs.existsSync(logFile)) {
+  fs.writeFileSync(logFile, '');
+}
+
 // Logging middleware
-app.use(morgan('dev'));
+const logStream = fs.createWriteStream(logFile, { flags: 'a' });
+app.use(morgan('dev', { stream: logStream }));
 
 // Basic Auth middleware
 const authMiddleware = (req, res, next) => {
