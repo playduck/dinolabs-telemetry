@@ -2,6 +2,8 @@ const config = require("../config.json");
 const path = require("path");
 const protobuf = require("protobufjs");
 const cobs = require("cobs");
+const zlib = require("zlib");
+const crc_32 = require('crc-32');
 
 const TAG = "PROTO";
 
@@ -19,11 +21,9 @@ const parseMessage = (x) => {
 
 const crc32 = (buffer) => {
   if (typeof zlib !== 'undefined' && zlib.crc32) {
-    return zlib.crc32(buffer);
+    return zlib.crc32(buffer, 0);
   } else {
-    // Fallback implementation using crc32-buffer or manual implementation
-    const crc32Buffer = require('crc32-buffer');
-    return crc32Buffer(buffer);
+    return crc_32.buf(buffer, 0);
   }
 }
 
