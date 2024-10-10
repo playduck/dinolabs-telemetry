@@ -59,7 +59,9 @@ class PostApi {
         response += chunk;
       });
       res.on('end', () => {
-        console.log(TAG, 'Response body:', response);
+        if(res.statusCode != 200) {
+          console.log(TAG, 'Response body:', response);
+        }
         if(typeof(callback) === "function") {
           callback(null, response);
         }
