@@ -753,7 +753,7 @@ function init() {
   cpuUsage = document.getElementById("cpu-usage");
   storageCapacity = document.getElementById("storage-capacity");
   badMessageElement = document.getElementById("bad-messages")
-  badMessageElement.innerText = 0;
+  badMessageElement.innerText = "None";
 
   messageLog = document.getElementById("message-scroll-block");
 
@@ -942,7 +942,8 @@ function parseMessage(message)  {
 
 function badMessage() {
   badMessageCount += 1;
-  badMessageElement.innerText = badMessageCount;
+  const percentage = (badMessageCount / tableRowCount) * 100;
+  badMessageElement.innerText = `${percentage.toFixed(1)}% (${badMessageCount})`;
   appendTableRow(LogHistory, "-", "Bad CRC", undefined);
 }
 
