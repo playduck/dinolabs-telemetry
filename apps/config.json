@@ -9,11 +9,19 @@
         "definition": "./proto/payload.proto",
         "cobs_length": 2048
     },
-    "server": {
+    "local_server": {
         "port": 8080
     },
-    "tcp": {
+    "public_server": {
+        "port": 8084
+    },
+    "tcpc": {
         "host": "localhost",
         "port": 8081
+    },
+    "tcp_api": {
+        "protocol": "http",
+        "host": "localhost",
+        "endpoint_url": "/api/v1/buffer"
     }
 }

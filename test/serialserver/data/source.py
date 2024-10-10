@@ -112,10 +112,6 @@ def serialize(msg: payload.PayloadPackage) -> bytearray:
     buffer = cobs.encode(buffer)
     buffer += b'\x00' # append terminating null byte
 
-    # Prepend the length of the buffer as a single byte
-    length_byte = len(buffer).to_bytes(1, 'little')
-    buffer = length_byte + buffer
-
     return buffer
 
 ## BEGIN EXAMPLE FUNCTIONS ##

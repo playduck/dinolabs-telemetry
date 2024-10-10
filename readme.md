@@ -5,7 +5,7 @@ Run server using
 npm install
 npm start
 ```
-Interface accessible on port `:3000`.
+Interface accessible on port `:8080`.
 
 OPC-UA Test Server at `./test/opcserver`.
 Run using

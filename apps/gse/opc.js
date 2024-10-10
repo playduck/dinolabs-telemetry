@@ -1,4 +1,4 @@
-const config = require('./config.json');
+const config = require('../config.json');
 
 const opcua = require("node-opcua");
 const EventEmitter = require('node:events');

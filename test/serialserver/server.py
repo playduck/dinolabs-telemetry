@@ -19,7 +19,7 @@ TCP_SERVER_PORT = 8081
 TCP_SERVER_BUFFER_SIZE = 1024  # bytes
 
 # Dummy data settings
-USE_DUMMY_DATA = False
+USE_DUMMY_DATA = True
 
 # Data request settings
 DATA_REQUEST_INTERVAL = 0.25  # seconds

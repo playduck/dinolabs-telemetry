@@ -1,14 +1,16 @@
-const config = require("./config.json");
+const config = require("../config.json");
 const path = require("path");
 const protobuf = require("protobufjs");
 const cobs = require("cobs");
 const zlib = require("zlib");
 
+const TAG = "PROTO";
+
 cobs.maxLength = config.proto.cobs_length;
 
 const protobufDefinition = path.join(__dirname, config.proto.definition);
 let decodeMessage = () => {
-    console.log("protobuf uninitilized");
+    console.error(TAG, "protobuf uninitilized");
     return undefined;
 };
 
@@ -116,7 +118,7 @@ protobuf.load(protobufDefinition).then( (root) => {
         };
         break;
       default:
-        console.error(`Unknown type ${type}`);
+        console.error(TAG, `Unknown type ${type}`);
         return null;
     }
 
@@ -130,7 +132,6 @@ protobuf.load(protobufDefinition).then( (root) => {
 
   decodeMessage = (buffer) => {
 
-    console.log("length: ", buffer.length);
     const decodedData = cobs.decode(buffer);
 
     try {
@@ -142,22 +143,22 @@ protobuf.load(protobufDefinition).then( (root) => {
 
         calc_crc32 = zlib.crc32(decodedData.subarray(5, decodedData.length - 1), 0);
         if(message.crc32 != calc_crc32) {
-            console.error("CRC mismatch");
+            console.error(TAG, "CRC mismatch");
         } else  {
-          console.log("CRC match")
+          console.log(TAG, "CRC match")
         }
-        console.log(message)
+        // console.log(TAG, message)
 
         delete message.crc32;
         delete message.version;
 
         return message;
     }   catch(e) {
-        console.log(e)
+        console.log(TAG, e)
     }
   };
 
-  console.log("loaded protobuf")
+  console.log(TAG, "loaded protobuf")
 });
 
 module.exports = {

@@ -9,7 +9,7 @@ import {
 
 import socketClient from './socket-client.js';
 
-const demoMode = true;
+const demoMode = false;
 const demoLoopIntervalMs = 250;
 const uiUpdateLoopIntervalMs = 100;
 const SCALING_FACTOR = 1000.0;
