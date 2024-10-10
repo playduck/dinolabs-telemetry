@@ -2,8 +2,6 @@ const config = require("../config.json");
 const path = require("path");
 const protobuf = require("protobufjs");
 const cobs = require("cobs");
-const zlib = require("zlib");
-const crc32 = require('crc-32');
 
 const TAG = "PROTO";
 
@@ -17,6 +15,16 @@ let decodeMessage = () => {
 
 const parseMessage = (x) => {
     return decodeMessage(x);
+}
+
+const crc32 = (buffer) => {
+  if (typeof zlib !== 'undefined' && zlib.crc32) {
+    return zlib.crc32(buffer);
+  } else {
+    // Fallback implementation using crc32-buffer or manual implementation
+    const crc32Buffer = require('crc32-buffer');
+    return crc32Buffer(buffer);
+  }
 }
 
 protobuf.load(protobufDefinition).then( (root) => {
@@ -142,7 +150,7 @@ protobuf.load(protobufDefinition).then( (root) => {
             defaults: true // default omissions to zero
         });
 
-        calc_crc32 = crc32.buf(decodedData.subarray(5, decodedData.length - 1), 0);
+        calc_crc32 = crc32(decodedData.subarray(5, decodedData.length - 1), 0);
         if(message.crc32 != calc_crc32) {
             console.error(TAG, "CRC mismatch");
         } else  {
