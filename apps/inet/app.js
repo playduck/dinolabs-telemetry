@@ -40,7 +40,7 @@ app.post("/" + config.tcp_api.endpoint_url, authMiddleware, (req, res) => {
     // Send the parsed message as JSON via Websocket
     if(msg != undefined)  {
       io.emit('message', JSON.stringify(msg));
-      res.status(200).send('Binary Message received and sent via Websocket');
+      res.status(200).send(`Binary Message received and sent via Websocket: ${msg}`);
     } else  {
       res.status(400).seend(`Could not parse binary protobuf: ${msg}`)
     }
