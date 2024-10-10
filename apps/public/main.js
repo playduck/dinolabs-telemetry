@@ -40,7 +40,7 @@ let previousTime = undefined;
 
 let powerGood, chargeSource;
 let errorCount, payloadState, FCSState, cpuUsage, storageCapacity, badMessageElement;
-let lastMessageTime, badMessageCount = 0;
+let lastMessageTime = 0, badMessageCount = 0;
 
 let colors = {
   "--very-light-gray": undefined,
