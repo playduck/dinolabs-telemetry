@@ -4,7 +4,7 @@ const router = express.Router();
 
 // Serve custom three.meshline.js file
 router.use("/three.meshline", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../public/dist/custom.three.meshline.js"));
+  res.sendFile(path.join(__dirname, "../../public/dist/custom.THREE.MeshLine.js"));
 });
 router.use("/socket/socket.io", (req, res) => {
   res.sendFile(path.join(__dirname, "../../../node_modules/socket.io/client-dist/socket.io.esm.min.js"));
