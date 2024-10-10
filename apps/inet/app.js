@@ -5,9 +5,6 @@ const morgan = require('morgan');
 const ip = require('ip');
 const auth = require('basic-auth');
 const bodyParser = require('body-parser');
-const fs = require('fs');
-const path = require('path');
-const rfs = require('rotating-file-stream');
 
 const config = require('../config.json');
 const secrets = require('../secrets.json');
@@ -18,17 +15,8 @@ const pb = require('../common/protobuf')
 
 const TAG = 'INET';
 
-// Create a rotating log file
-const logDirectory = path.join(__dirname, 'logs');
-fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
-
-const accessLogStream = rfs.createStream('access.log', {
-  interval: '1d', // rotate daily
-  path: logDirectory,
-});
-
 // Logging middleware
-app.use(morgan('combined', { stream: accessLogStream }));
+app.use(morgan('dev'));
 
 // Basic Auth middleware
 const authMiddleware = (req, res, next) => {
