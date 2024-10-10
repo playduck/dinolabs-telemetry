@@ -439,6 +439,9 @@ footer {
 #log table td:nth-child(4) {
     width: 25%!important;
 }
+#log .bad {
+    color: var(--warr-red)!important;
+}
 
 #temperature-gauges {
     display: grid;

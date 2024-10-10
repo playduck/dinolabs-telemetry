@@ -32,7 +32,14 @@ protobuf.load(protobufDefinition).then( (root) => {
 
   decodeMessage = (buffer) => {
 
-    const decodedData = cobs.decode(buffer);
+    let decodedData = undefined;
+    try {
+      decodedData = cobs.decode(buffer);
+    } catch(e)  {
+      console.error(TAG, "Bad COBS");
+      return undefined;
+    }
+
 
     try {
         const message = PayloadPackage.toObject(PayloadPackage.decode(decodedData, decodedData.length - 1), {
@@ -44,6 +51,7 @@ protobuf.load(protobufDefinition).then( (root) => {
         calc_crc32 = crc32(decodedData.subarray(5, decodedData.length - 1), 0);
         if(message.crc32 != calc_crc32) {
             console.error(TAG, "CRC mismatch");
+            return undefined;
         } else  {
           console.log(TAG, "CRC match")
         }
@@ -54,8 +62,8 @@ protobuf.load(protobufDefinition).then( (root) => {
 
         return message;
     }   catch(e) {
-        console.log(TAG, e)
-        return e
+        console.error(TAG, "Bad pb deocoding");
+        return undefined;
     }
   };
 

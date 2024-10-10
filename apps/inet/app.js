@@ -42,6 +42,7 @@ app.post("/" + config.tcp_api.endpoint_url, authMiddleware, (req, res) => {
       io.emit('message', JSON.stringify(msg));
       res.status(200).send(`Binary Message received and sent via Websocket`);
     } else  {
+      io.emit('bad-message');
       res.status(400).seend(`Could not parse binary protobuf: ${msg}`)
     }
   }

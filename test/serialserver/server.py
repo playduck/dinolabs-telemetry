@@ -108,6 +108,10 @@ def generate_dummy_data():
     """Generate dummy data packet"""
     global max_package_size_dummy, last_log_time
     data = source.example_generate_random_buffer()
+
+    if(random.random() <= 0.1):
+        data = random.randbytes(len(data))
+
     package_size = len(data)
     if package_size > max_package_size_dummy:
         max_package_size_dummy = package_size

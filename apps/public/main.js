@@ -23,7 +23,7 @@ const TECHistory = globalHistory;
 const PowerHistory = globalHistory;
 const LogHistory = globalHistory;
 
-/* pltos */
+/* plots */
 const chambers = [];
 let imuAccelSparkline;
 let imuGyrolSparkline;
@@ -39,8 +39,8 @@ let messageLog;
 let previousTime = undefined;
 
 let powerGood, chargeSource;
-let errorCount, payloadState, FCSState, cpuUsage, storageCapacity;
-let lastMessageTime;
+let errorCount, payloadState, FCSState, cpuUsage, storageCapacity, badMessageElement;
+let lastMessageTime, badMessageCount = 0;
 
 let colors = {
   "--very-light-gray": undefined,
@@ -209,6 +209,7 @@ function appendTableRow(limit, time, type, previousTime) {
     } else {
       previousTime = time;
       cell3.textContent = 'none';
+      row.classList.add("bad");
     }
     row.appendChild(cell3);
 
@@ -751,6 +752,8 @@ function init() {
   FCSState = document.getElementById("rocket-state");
   cpuUsage = document.getElementById("cpu-usage");
   storageCapacity = document.getElementById("storage-capacity");
+  badMessageElement = document.getElementById("bad-messages")
+  badMessageElement.innerText = 0;
 
   messageLog = document.getElementById("message-scroll-block");
 
@@ -937,6 +940,12 @@ function parseMessage(message)  {
   }
 }
 
+function badMessage() {
+  badMessageCount += 1;
+  badMessageElement.innerText = badMessageCount;
+  appendTableRow(LogHistory, "-", "Bad CRC", undefined);
+}
+
 function detectColorScheme(){
   var theme="light";    //default to light
 
@@ -969,6 +978,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if(!demoMode) {
     /* setup weboscket hooks  */
     socketClient.onMessage(parseMessage);
+    socketClient.onBadMessage(badMessage);
   } else  {
     const demoModeIndicator = document.getElementById("demo-mode");
     demoModeIndicator.style.display = "block";

@@ -56,6 +56,12 @@ const socketClient = {
     });
   },
 
+  onBadMessage: (callback) => {
+    socket.on('bad-message', () => {
+      callback();
+    });
+  },
+
   sendMessage: (message) => {
     socket.emit('message', message);
   },

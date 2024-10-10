@@ -21,11 +21,15 @@ app.use(morgan("dev"));
 app.use(routes);
 
 tcpc.emitter.on("message", (buffer) => {
-  const msg = pb.parseMessage(buffer);
-  const msg_json = JSON.stringify(msg);
-
   tcpp.post(buffer);
-  io.emit("message", msg_json)
+
+  const msg = pb.parseMessage(buffer);
+  if(msg != undefined)  {
+    const msg_json = JSON.stringify(msg);
+    io.emit("message", msg_json)
+  } else  {
+    io.emit('bad-message');
+  }
   // console.log(msg_json)
 })
 
