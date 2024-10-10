@@ -10,7 +10,7 @@ class PostApi {
     this.reconnectTimeout = 1000;  // fixed reconnect timeout
     this.retryCount = 0;
     this.auth = secrets.tcp_api.auth;
-    this.url = `${config.tcp_api.protocol}://${config.tcp_api.host}:${config.public_server.port}`;
+    this.url = `${config.tcp_api.protocol}://${config.tcp_api.host}:${config.tcp_api.port}`;
 
     this.connected = false;
   }

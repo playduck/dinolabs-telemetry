@@ -13,15 +13,16 @@
         "port": 8080
     },
     "public_server": {
-        "port": 8084
+        "port": 8080
     },
     "tcpc": {
         "host": "localhost",
         "port": 8081
     },
     "tcp_api": {
-        "protocol": "http",
-        "host": "localhost",
+        "port": "80",
+        "protocol": "https",
+        "host": "dinolabs.eu",
         "endpoint_url": "/api/v1/buffer"
     }
 }
