@@ -10,7 +10,7 @@ class PostApi {
     this.reconnectTimeout = 1000;  // fixed reconnect timeout
     this.retryCount = 0;
     this.auth = secrets.tcp_api.auth;
-    this.url = `${config.tcp_api.protocol}://${config.tcp_api.host}:${config.tcp_api.port}`;
+    this.url = `${config.tcp_api.protocol}://${config.tcp_api.host}`;
 
     this.connected = false;
   }
@@ -23,7 +23,6 @@ class PostApi {
     const options = {
       method: 'POST',
       hostname: config.tcp_api.host,
-      port: config.public_server.port,
       path: config.tcp_api.endpoint_url,
       headers: {
         'Content-Type': data instanceof Buffer ? 'application/octet-stream' : 'application/json',
@@ -40,7 +39,7 @@ class PostApi {
 
     const req = http.request(options);
     req.on('error', (err) => {
-      console.error(TAG, 'Error occurred:', err.name);
+      console.error(TAG, 'Error occurred:', err);
       if(typeof(callback) === "function") {
         callback(err);
       }
@@ -50,30 +49,25 @@ class PostApi {
         callback();
       }
     });
+    req.on('response', (res) => {
+      console.log(TAG, 'Response received:', res.statusCode);
+      let response = '';
+      res.on('data', (chunk) => {
+        response += chunk;
+      });
+      res.on('end', () => {
+        console.log(TAG, 'Response body:', response);
+        if(typeof(callback) === "function") {
+          callback(null, response);
+        }
+      });
+    });
     req.end(data);
   }
 
   connect() {
     this.connected = true;
-
-    // const options = {
-    //   method: 'GET',
-    //   hostname: config.tcp_api.host,
-    //   port: config.public_server.port,
-    //   path: '/'
-    // };
-
-    // const req = http.request(options);
-    // req.on('error', (err) => {
-    //   console.error(TAG, 'Error occurred:', err);
-    //   this.reconnect();
-    // });
-    // req.on('response', () => {
-    //   console.log(TAG, 'Connected to the server');
-    //   this.retryCount = 0;
-    //   this.connected = true;
-    // });
-    // req.end();
+    console.log(TAG, "Connected to Server");
   }
 
   reconnect(callback) {
@@ -88,7 +82,7 @@ class PostApi {
   }
 
   onError(err) {
-    console.error(TAG, 'Error occurred:', err.name);
+    console.error(TAG, 'Error occurred:', err);
     this.reconnect();
     this.connected = false;
   }

@@ -6,6 +6,8 @@ const ip = require('ip');
 const auth = require('basic-auth');
 const bodyParser = require('body-parser');
 const fs = require('fs');
+const path = require('path');
+const rfs = require('rotating-file-stream');
 
 const config = require('../config.json');
 const secrets = require('../secrets.json');
@@ -16,15 +18,17 @@ const pb = require('../common/protobuf')
 
 const TAG = 'INET';
 
-// Create a log file if it does not exist
-const logFile = 'server.log';
-if (!fs.existsSync(logFile)) {
-  fs.writeFileSync(logFile, '');
-}
+// Create a rotating log file
+const logDirectory = path.join(__dirname, 'logs');
+fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
+
+const accessLogStream = rfs.createStream('access.log', {
+  interval: '1d', // rotate daily
+  path: logDirectory,
+});
 
 // Logging middleware
-const logStream = fs.createWriteStream(logFile, { flags: 'a' });
-app.use(morgan('dev', { stream: logStream }));
+app.use(morgan('combined', { stream: accessLogStream }));
 
 // Basic Auth middleware
 const authMiddleware = (req, res, next) => {
@@ -41,7 +45,7 @@ const authMiddleware = (req, res, next) => {
 app.use(bodyParser.json());
 app.use(bodyParser.raw({ type: 'application/octet-stream' }));
 
-app.post(config.tcp_api.endpoint_url, authMiddleware, (req, res) => {
+app.post("/" + config.tcp_api.endpoint_url, authMiddleware, (req, res) => {
   if (req.body instanceof Buffer) {
     // Parse the binary buffer with Protobuf
     const msg = pb.parseMessage(req.body);

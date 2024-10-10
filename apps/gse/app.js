@@ -26,6 +26,7 @@ tcpc.emitter.on("message", (buffer) => {
 
   tcpp.post(buffer);
   io.emit("message", msg_json)
+  // console.log(msg_json)
 })
 
 // Start the server

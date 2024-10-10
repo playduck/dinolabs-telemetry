@@ -23,6 +23,6 @@
         "port": "80",
         "protocol": "https",
         "host": "dinolabs.eu",
-        "endpoint_url": "/api/v1/buffer"
+        "endpoint_url": "api/v1/buffer"
     }
 }
