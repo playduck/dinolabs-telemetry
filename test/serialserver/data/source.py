@@ -185,19 +185,19 @@ def example_populate_data(msg: payload.PayloadPackage, type: str) -> payload.Pay
 
             msg.ExperiementState.sensors.add(
                 averageRawOpticalPower = debug_uniform(0, 20),
-                photodiodeVoltage = debug_uniform(0, 3.3),
+                photodiodeVoltage = debug_uniform(0, 0.256),
             )
             msg.ExperiementState.sensors.add(
                 averageRawOpticalPower = debug_uniform(0, 20),
-                photodiodeVoltage = debug_uniform(0, 3.3),
+                photodiodeVoltage = debug_uniform(0, 0.256),
             )
             msg.ExperiementState.sensors.add(
                 averageRawOpticalPower = debug_uniform(0, 20),
-                photodiodeVoltage = debug_uniform(0, 3.3),
+                photodiodeVoltage = debug_uniform(0, 0.256),
             )
             msg.ExperiementState.sensors.add(
                 averageRawOpticalPower = debug_uniform(0, 20),
-                photodiodeVoltage = debug_uniform(0, 3.3),
+                photodiodeVoltage = debug_uniform(0, 0.256),
             )
 
 # example message generation

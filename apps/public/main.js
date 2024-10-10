@@ -293,7 +293,7 @@ function generateChamber(index, parent) {
       },
       y: {
         auto: false,
-        range: [0, 4096],
+        range: [0, 0.256],
       },
     },
     legend: {
