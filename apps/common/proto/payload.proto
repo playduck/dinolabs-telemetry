@@ -4,12 +4,6 @@ syntax = "proto3";
 // import "nanopb.proto";
 
 package dinolabs;
-option optimize_for = LITE_RUNTIME;
-
-enum Versions {
-  Version_Unknown = 0;
-  Version_1 = 1;
-}
 
 /* main trasaction message */
 message PayloadPackage {

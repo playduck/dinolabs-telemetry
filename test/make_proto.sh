@@ -1,1 +1,1 @@
-protoc -I=../app/proto --python_out=./opcserver/data/proto ../app/proto/payload.proto
+protoc -I=../apps/common/proto --python_out=./serialserver/data/proto ../apps/common/proto/payload.proto
