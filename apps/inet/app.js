@@ -38,8 +38,12 @@ app.post("/" + config.tcp_api.endpoint_url, authMiddleware, (req, res) => {
     // Parse the binary buffer with Protobuf
     const msg = pb.parseMessage(req.body);
     // Send the parsed message as JSON via Websocket
-    io.emit('message', JSON.stringify(msg));
-    res.status(200).send('Binary Message received and sent via Websocket');
+    if(msg != undefined)  {
+      io.emit('message', JSON.stringify(msg));
+      res.status(200).send('Binary Message received and sent via Websocket');
+    } else  {
+      res.status(400).seend(`Could not parse binary protobuf: ${msg}`)
+    }
   }
   else if (typeof req.body === 'object') {
     // Send the JSON object via Websocket

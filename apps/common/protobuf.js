@@ -155,6 +155,7 @@ protobuf.load(protobufDefinition).then( (root) => {
         return message;
     }   catch(e) {
         console.log(TAG, e)
+        return e
     }
   };
 

@@ -1,6 +1,6 @@
 const config = require('../config.json');
 const secrets = require('../secrets.json');
-const http = require('http');
+const https = require('https');
 const base64 = require('base64-js');
 
 const TAG = "TCPP";
@@ -11,7 +11,6 @@ class PostApi {
     this.retryCount = 0;
     this.auth = secrets.tcp_api.auth;
     this.url = `${config.tcp_api.protocol}://${config.tcp_api.host}`;
-
     this.connected = false;
   }
 
@@ -21,9 +20,10 @@ class PostApi {
     }
 
     const options = {
+      host: config.tcp_api.host,
+      port: 443,
+      path: "/" + config.tcp_api.endpoint_url,
       method: 'POST',
-      hostname: config.tcp_api.host,
-      path: config.tcp_api.endpoint_url,
       headers: {
         'Content-Type': data instanceof Buffer ? 'application/octet-stream' : 'application/json',
         'Content-Length': data.length
@@ -37,18 +37,21 @@ class PostApi {
       options.headers.Authorization = `Basic ${encodedAuth}`;
     }
 
-    const req = http.request(options);
+    const req = https.request(options);
+
     req.on('error', (err) => {
       console.error(TAG, 'Error occurred:', err);
       if(typeof(callback) === "function") {
         callback(err);
       }
     });
+
     req.on('close', () => {
       if(typeof(callback) === "function") {
         callback();
       }
     });
+
     req.on('response', (res) => {
       console.log(TAG, 'Response received:', res.statusCode);
       let response = '';
