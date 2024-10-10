@@ -25,7 +25,7 @@ const authMiddleware = (req, res, next) => {
       credentials.pass !== secrets.tcp_api.auth.password) {
 
     res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
-    return res.status(401).send('Access denied');
+    return res.status(401).send('Access denied. Invalid Username or Password');
   }
   next();
 };
@@ -47,7 +47,7 @@ app.post("/" + config.tcp_api.endpoint_url, authMiddleware, (req, res) => {
     res.status(200).send('JSON Message received and sent via Websocket');
   }
   else {
-    res.status(400).send('Invalid request body');
+    res.status(400).send(`Invalid request body type: ${typeof req.body}`);
   }
 });
 
