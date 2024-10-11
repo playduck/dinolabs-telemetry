@@ -43,7 +43,7 @@ app.post("/" + config.tcp_api.endpoint_url, authMiddleware, (req, res) => {
     // Send the parsed message as JSON via Websocket
     if(msg != undefined)  {
       io.emit('message', JSON.stringify(msg));
-      stream.write(msg + ",");
+      stream.write(msg + ",\n");
       res.status(200).send(`Binary Message received and sent via Websocket`);
     } else  {
       io.emit('bad-message');

@@ -29,7 +29,7 @@ tcpc.emitter.on("message", (buffer) => {
     const msg_json = JSON.stringify(msg);
     io.emit("message", msg_json)
     tcpp.post(msg_json);
-    stream.write(msg_json + ",");
+    stream.write(msg_json + ",\n");
   } else  {
     io.emit('bad-message');
     tcpp.post(buffer);
