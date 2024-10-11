@@ -100,7 +100,11 @@ function formatValue(x) {
 
   const prefix = x >= 0 ? "+" : "-"; // automatic prefix for negative values
   const fixed = Math.abs(x).toFixed(2).split('.');
-  const integerPart = fixed[0].padStart(2, "0"); // pad the integer part
+  let c = 2;
+  if(x >= 100.0) {
+    c = 1;
+  }
+  const integerPart = fixed[0].padStart(c, "0"); // pad the integer part
   const decimalPart = fixed[1]; // get the decimal part
   return `${prefix}${integerPart}.${decimalPart}`;
 }

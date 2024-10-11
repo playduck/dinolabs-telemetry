@@ -3,6 +3,7 @@ const app = express();
 const server = require('http').createServer(app);
 const morgan = require("morgan");
 const ip = require("ip");
+const fs = require("fs");
 
 const config = require("../config.json");
 
@@ -13,6 +14,8 @@ const routes = require("../common/routes");
 const pb = require("../common/protobuf")
 
 const TAG = "LOCAL";
+
+const stream = fs.createWriteStream(`./spacelabs-${Date.now()}-gse.log`);
 
 // Logging middleware
 app.use(morgan("dev"));
@@ -26,7 +29,7 @@ tcpc.emitter.on("message", (buffer) => {
     const msg_json = JSON.stringify(msg);
     io.emit("message", msg_json)
     tcpp.post(msg_json);
-    console.log(msg_json)
+    stream.write(msg_json + ",");
   } else  {
     io.emit('bad-message');
     tcpp.post(buffer);
