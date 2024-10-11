@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rpayload.proto\x12\x08\x64inolabs\"\x80\x02\n\x0ePayloadPackage\x12\r\n\x05\x63rc32\x18\x01 \x01(\x07\x12\x11\n\ttimestamp\x18\x02 \x01(\x04\x12*\n\nPowerState\x18\x03 \x01(\x0b\x32\x14.dinolabs.PowerBoardH\x00\x12\x35\n\x10\x45xperiementState\x18\x04 \x01(\x0b\x32\x19.dinolabs.ExperimentBoardH\x00\x12/\n\x0c\x43oolingState\x18\x05 \x01(\x0b\x32\x17.dinolabs.CoolingSystemH\x00\x12-\n\x0cSystemStatus\x18\x06 \x01(\x0b\x32\x15.dinolabs.SystemStateH\x00\x42\t\n\x07payload\"\xd4\x01\n\nPowerBoard\x12\x11\n\tV_Battery\x18\x01 \x01(\r\x12\x11\n\tI_Battery\x18\x02 \x01(\x05\x12\x16\n\x0eV_Charge_Input\x18\x03 \x01(\r\x12\x12\n\nV_Rail_12V\x18\x06 \x01(\r\x12\x12\n\nI_Rail_12V\x18\x07 \x01(\x05\x12\x11\n\tV_Rail_5V\x18\x08 \x01(\r\x12\x11\n\tI_Rail_5V\x18\t \x01(\x05\x12\x12\n\nV_Rail_3V3\x18\n \x01(\r\x12\x12\n\nI_Rail_3V3\x18\x0b \x01(\x05\x12\x12\n\npowerState\x18\x0c \x01(\r\"M\n\x10\x45xperimentSensor\x12\x1e\n\x16\x61verageRawOpticalPower\x18\x01 \x01(\r\x12\x19\n\x11photodiodeVoltage\x18\x02 \x01(\r\"O\n\x0f\x45xperimentBoard\x12\x0f\n\x07\x62oardId\x18\x01 \x01(\r\x12+\n\x07sensors\x18\x02 \x03(\x0b\x32\x1a.dinolabs.ExperimentSensor\"-\n\x03TEC\x12\x12\n\nTECVoltage\x18\x01 \x01(\r\x12\x12\n\nTECCurrent\x18\x02 \x01(\x05\"\x15\n\x03\x46\x61n\x12\x0e\n\x06\x46\x61nPWM\x18\x01 \x01(\r\"\xbe\x01\n\rCoolingSystem\x12\x1d\n\x06TopTEC\x18\x01 \x01(\x0b\x32\r.dinolabs.TEC\x12 \n\tBottomTEC\x18\x02 \x01(\x0b\x32\r.dinolabs.TEC\x12\x1a\n\x03\x66\x61n\x18\x03 \x01(\x0b\x32\r.dinolabs.Fan\x12\x1a\n\x12Temp_Top_Cool_Side\x18\x04 \x01(\x05\x12\x1d\n\x15Temp_Bottom_Cool_Side\x18\x05 \x01(\x05\x12\x15\n\rTemp_Hot_Side\x18\x06 \x01(\x05\"\\\n\x03IMU\x12\x0c\n\x04\x61\x63\x63X\x18\x01 \x01(\x05\x12\x0c\n\x04\x61\x63\x63Y\x18\x02 \x01(\x05\x12\x0c\n\x04\x61\x63\x63Z\x18\x03 \x01(\x05\x12\r\n\x05gyroX\x18\x04 \x01(\x05\x12\r\n\x05gyroY\x18\x05 \x01(\x05\x12\r\n\x05gyroZ\x18\x06 \x01(\x05\"\x9e\x01\n\x0bSystemState\x12\x1b\n\x13\x63urrentPayloadState\x18\x01 \x01(\r\x12\x14\n\x0clastFCSState\x18\x02 \x01(\r\x12\x15\n\rrawErrorCount\x18\x03 \x01(\r\x12\x10\n\x08\x63puUsage\x18\x04 \x01(\r\x12\x17\n\x0fstorageCapacity\x18\x05 \x01(\r\x12\x1a\n\x03IMU\x18\x06 \x01(\x0b\x32\r.dinolabs.IMUb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rpayload.proto\x12\x08\x64inolabs\"\x80\x02\n\x0ePayloadPackage\x12\r\n\x05\x63rc32\x18\x01 \x01(\x07\x12\x11\n\ttimestamp\x18\x02 \x01(\x04\x12*\n\nPowerState\x18\x03 \x01(\x0b\x32\x14.dinolabs.PowerBoardH\x00\x12\x35\n\x10\x45xperiementState\x18\x04 \x01(\x0b\x32\x19.dinolabs.ExperimentBoardH\x00\x12/\n\x0c\x43oolingState\x18\x05 \x01(\x0b\x32\x17.dinolabs.CoolingSystemH\x00\x12-\n\x0cSystemStatus\x18\x06 \x01(\x0b\x32\x15.dinolabs.SystemStateH\x00\x42\t\n\x07payload\"\xee\x01\n\nPowerBoard\x12\x11\n\tV_Battery\x18\x01 \x01(\r\x12\x11\n\tI_Battery\x18\x02 \x01(\x05\x12\x16\n\x0eV_Charge_Input\x18\x03 \x01(\r\x12\x18\n\x10I_Charge_Battery\x18\x05 \x01(\x05\x12\x12\n\nV_Rail_12V\x18\x06 \x01(\r\x12\x12\n\nI_Rail_12V\x18\x07 \x01(\x05\x12\x11\n\tV_Rail_5V\x18\x08 \x01(\r\x12\x11\n\tI_Rail_5V\x18\t \x01(\x05\x12\x12\n\nV_Rail_3V3\x18\n \x01(\r\x12\x12\n\nI_Rail_3V3\x18\x0b \x01(\x05\x12\x12\n\npowerState\x18\x0c \x01(\r\"M\n\x10\x45xperimentSensor\x12\x1e\n\x16\x61verageRawOpticalPower\x18\x01 \x01(\r\x12\x19\n\x11photodiodeVoltage\x18\x02 \x01(\r\"O\n\x0f\x45xperimentBoard\x12\x0f\n\x07\x62oardId\x18\x01 \x01(\r\x12+\n\x07sensors\x18\x02 \x03(\x0b\x32\x1a.dinolabs.ExperimentSensor\"-\n\x03TEC\x12\x12\n\nTECVoltage\x18\x01 \x01(\r\x12\x12\n\nTECCurrent\x18\x02 \x01(\x05\"\x15\n\x03\x46\x61n\x12\x0e\n\x06\x46\x61nPWM\x18\x01 \x01(\r\"\xbe\x01\n\rCoolingSystem\x12\x1d\n\x06TopTEC\x18\x01 \x01(\x0b\x32\r.dinolabs.TEC\x12 \n\tBottomTEC\x18\x02 \x01(\x0b\x32\r.dinolabs.TEC\x12\x1a\n\x03\x66\x61n\x18\x03 \x01(\x0b\x32\r.dinolabs.Fan\x12\x1a\n\x12Temp_Top_Cool_Side\x18\x04 \x01(\x05\x12\x1d\n\x15Temp_Bottom_Cool_Side\x18\x05 \x01(\x05\x12\x15\n\rTemp_Hot_Side\x18\x06 \x01(\x05\"\\\n\x03IMU\x12\x0c\n\x04\x61\x63\x63X\x18\x01 \x01(\x05\x12\x0c\n\x04\x61\x63\x63Y\x18\x02 \x01(\x05\x12\x0c\n\x04\x61\x63\x63Z\x18\x03 \x01(\x05\x12\r\n\x05gyroX\x18\x04 \x01(\x05\x12\r\n\x05gyroY\x18\x05 \x01(\x05\x12\r\n\x05gyroZ\x18\x06 \x01(\x05\"\x9e\x01\n\x0bSystemState\x12\x1b\n\x13\x63urrentPayloadState\x18\x01 \x01(\r\x12\x14\n\x0clastFCSState\x18\x02 \x01(\r\x12\x15\n\rrawErrorCount\x18\x03 \x01(\r\x12\x10\n\x08\x63puUsage\x18\x04 \x01(\r\x12\x17\n\x0fstorageCapacity\x18\x05 \x01(\r\x12\x1a\n\x03IMU\x18\x06 \x01(\x0b\x32\r.dinolabs.IMUb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,19 +34,19 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_PAYLOADPACKAGE']._serialized_start=28
   _globals['_PAYLOADPACKAGE']._serialized_end=284
   _globals['_POWERBOARD']._serialized_start=287
-  _globals['_POWERBOARD']._serialized_end=499
-  _globals['_EXPERIMENTSENSOR']._serialized_start=501
-  _globals['_EXPERIMENTSENSOR']._serialized_end=578
-  _globals['_EXPERIMENTBOARD']._serialized_start=580
-  _globals['_EXPERIMENTBOARD']._serialized_end=659
-  _globals['_TEC']._serialized_start=661
-  _globals['_TEC']._serialized_end=706
-  _globals['_FAN']._serialized_start=708
-  _globals['_FAN']._serialized_end=729
-  _globals['_COOLINGSYSTEM']._serialized_start=732
-  _globals['_COOLINGSYSTEM']._serialized_end=922
-  _globals['_IMU']._serialized_start=924
-  _globals['_IMU']._serialized_end=1016
-  _globals['_SYSTEMSTATE']._serialized_start=1019
-  _globals['_SYSTEMSTATE']._serialized_end=1177
+  _globals['_POWERBOARD']._serialized_end=525
+  _globals['_EXPERIMENTSENSOR']._serialized_start=527
+  _globals['_EXPERIMENTSENSOR']._serialized_end=604
+  _globals['_EXPERIMENTBOARD']._serialized_start=606
+  _globals['_EXPERIMENTBOARD']._serialized_end=685
+  _globals['_TEC']._serialized_start=687
+  _globals['_TEC']._serialized_end=732
+  _globals['_FAN']._serialized_start=734
+  _globals['_FAN']._serialized_end=755
+  _globals['_COOLINGSYSTEM']._serialized_start=758
+  _globals['_COOLINGSYSTEM']._serialized_end=948
+  _globals['_IMU']._serialized_start=950
+  _globals['_IMU']._serialized_end=1042
+  _globals['_SYSTEMSTATE']._serialized_start=1045
+  _globals['_SYSTEMSTATE']._serialized_end=1203
 # @@protoc_insertion_point(module_scope)

@@ -26,11 +26,11 @@ tcpc.emitter.on("message", (buffer) => {
     const msg_json = JSON.stringify(msg);
     io.emit("message", msg_json)
     tcpp.post(msg_json);
+    console.log(msg_json)
   } else  {
     io.emit('bad-message');
     tcpp.post(buffer);
   }
-  // console.log(msg_json)
 })
 
 // Start the server

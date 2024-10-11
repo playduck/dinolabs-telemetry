@@ -19,10 +19,10 @@ TCP_SERVER_PORT = 8081
 TCP_SERVER_BUFFER_SIZE = 1024  # bytes
 
 # Dummy data settings
-USE_DUMMY_DATA = True
+USE_DUMMY_DATA = False
 
 # Data request settings
-DATA_REQUEST_INTERVAL = 0.25  # seconds
+DATA_REQUEST_INTERVAL = 0.05  # seconds
 DATA_REQUEST_BYTE = b'\x02'
 DATA_TERMINATOR_BYTE = b'\x00'
 
@@ -128,9 +128,10 @@ def request_serial_data(serial_port):
 
 def send_status_bytes(serial_port):
     """Send status bytes to the serial port"""
-    status_byte = bytes([0x01, random.randint(0, 6)])
-    serial_port.write(status_byte)
-    print(f"Sent status bytes to serial port: {status_byte}")
+    # status_byte = bytes([0x01, random.randint(0, 6)])
+    # serial_port.write(status_byte)
+    # print(f"Sent status bytes to serial port: {status_byte}")
+    pass
 
 def main():
 

@@ -98,7 +98,7 @@ function formatValue(x) {
     x = 0;
   }
 
-  const prefix = x >= 0 ? "+" : ""; // automatic prefix for negative values
+  const prefix = x >= 0 ? "+" : "-"; // automatic prefix for negative values
   const fixed = Math.abs(x).toFixed(2).split('.');
   const integerPart = fixed[0].padStart(2, "0"); // pad the integer part
   const decimalPart = fixed[1]; // get the decimal part
@@ -293,7 +293,7 @@ function generateChamber(index, parent) {
       },
       y: {
         auto: false,
-        range: [0, 0.256],
+        range: [0, 0.512],
       },
     },
     legend: {
@@ -651,7 +651,7 @@ function addPowerPlot() {
       },
       i: {
         auto: false,
-        range: [0, 4],
+        range: [-2, 2],
       },
     },
     legend: {
@@ -769,7 +769,7 @@ function init() {
   chambers.forEach((c) => {
     c.sparkline.setSize(c.sparkline.getSize());
   });
-  imuAccelSparkline = addIMU("imu-accel", true, [-20, 20]);
+  imuAccelSparkline = addIMU("imu-accel", false, [-20, 20]);
   imuGyrolSparkline = addIMU("imu-gyro", false, [-500, 500]);
   tempPlot = addTemperaturePlot();
   tecPlot = addTECPlot();
@@ -781,13 +781,14 @@ function init() {
 
 function setExpPlot(board, i, sensor) {
   const maxVal = 0.256;
-  const value = sensor.photodiodeVoltage / SCALING_FACTOR;
+  const voltage = (sensor.photodiodeVoltage * 0.00032) / 1000.0; // TODO: remove magic numbers = (0.256 * (0x8000 >> 4)), Gain 16X
+  const opticalPower = Math.log(sensor.averageRawOpticalPower);
 
-  chambers[i].sparkline.setData(addAndConfine(chambers[i].sparkline.data, value, experimentHistory));
-  chambers[i].chamber.style.setProperty("--level",`${100 - Math.min(Math.max((value / maxVal) * 100, 0), 100)}%`);
+  chambers[i].sparkline.setData(addAndConfine(chambers[i].sparkline.data, voltage, experimentHistory));
+  chambers[i].chamber.style.setProperty("--level",`${100 - Math.min(Math.max((voltage / maxVal) * 100, 0), 100)}%`);
 
-  chambers[i].irradianceValue.innerText = formatValue(value);
-  chambers[i].voltageValue.innerText = formatValue(sensor.photodiodeVoltage / SCALING_FACTOR);
+  chambers[i].irradianceValue.innerText = formatValue(opticalPower);
+  chambers[i].voltageValue.innerText = formatValue(voltage);
 }
 
 function parseMessage(message)  {
@@ -889,7 +890,7 @@ function parseMessage(message)  {
       tecPlot.setData(addAndConfine(tecPlot.data, newTecData, TECHistory));
       setPowerBlockValues("tec-top", messageObject.CoolingState.TopTEC.TECVoltage / SCALING_FACTOR, messageObject.CoolingState.TopTEC.TECCurrent / SCALING_FACTOR);
       setPowerBlockValues("tec-bot", messageObject.CoolingState.BottomTEC.TECVoltage / SCALING_FACTOR, messageObject.CoolingState.BottomTEC.TECCurrent / SCALING_FACTOR);
-      document.querySelector('#fan .power-list div:nth-child(2) .value').innerText = formatValue(messageObject.CoolingState.fan.FanPercentage);
+      document.querySelector('#fan .power-list div:nth-child(2) .value').innerText = formatValue(messageObject.CoolingState.fan.FanPWM);
       break;
     case "SystemStatus":
       // TODO format value strings
