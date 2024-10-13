@@ -3,14 +3,15 @@
 ## Overview
 
 There are two NodeJs servers located in the `apps/` directory:
-- `gse`: Ground Station Equipment Server interfacing with rocketry
+- `gse`: Ground Station Equipment Server for interfacing with rocketry
 - `inet`: Internet server providing a REST API and static file serving
 
-Both servers expose a static file server and a dynamic websockets server.
+Both servers expose a static file server and a dynamic websockets server for live data updates.
 `gse` implements a TCP client connecting to rocketires telemetry reading COBS-delimited protocol buffers.
 It relays the data to a local file, a local websocket server and a TCP REST call to the `inet` server.
-`inet` implements this REST API endpoint (Post requests with HTTP basic-auth).
-These requests are either binary protobufs or JSON.
+`inet` implements this REST API endpoint (POST requests with HTTP basic-auth) and file servers.
+The `inet` accepts either binary protobfufs (`octal-streams`) or JSON.
+Currently, `JSON` is used as parsing on the server seems unreliable, although package sizes are increased.
 A legacy OPC-UA client also exists but is unused.
 
 For testing a OPC-UA server and a serial-port server with mock capabilities are provided.
@@ -26,12 +27,13 @@ First install required packages using
 ```bash
 npm install
 ```
+The `npm` utility should be bundled with the `node` installation.
 
 Then set the settings in `/apps/config.json`.
 It provides multiple fields:
-- `"local_server"`: local `gse` server access
+- `"local_server"`: local `gse` server access, can be left at default
 - `"public_server"`: `inet` server access, leave at default for `nginx` proxy
-- `"tcpc"`: rocketry-`gse` TCP client interface, **change to rocketry IP and port**
+- `"tcpc"`: rocketry-`gse` TCP client interface, **change this to rocketry IP and port**
 - `"tcp_api"`: public `inet` and `gse` API interface description, leave at default
 
 The `gse` server also opens local interface on port `8080` (`http://localhost:8080`).
