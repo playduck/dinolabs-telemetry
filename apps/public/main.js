@@ -94,7 +94,7 @@ function arcurve(level, ath) {
 /* format a numeric value to append a prefix (+-) and fix and pad it */
 function formatValue(x) {
   // Check if the value is NaN or undefined
-  if (typeof x === 'undefined' || isNaN(x)) {
+  if (typeof x === 'undefined' || isNaN(x) || !isFinite(x)) {
     x = 0;
   }
 
@@ -786,7 +786,7 @@ function init() {
 function setExpPlot(board, i, sensor) {
   const maxVal = 0.256;
   const voltage = (sensor.photodiodeVoltage * 0.00032) / 1000.0; // TODO: remove magic numbers = (0.256 * (0x8000 >> 4)), Gain 16X
-  const opticalPower = Math.log(sensor.averageRawOpticalPower);
+  const opticalPower = sensor.averageRawOpticalPower;
 
   chambers[i].sparkline.setData(addAndConfine(chambers[i].sparkline.data, voltage, experimentHistory));
   chambers[i].chamber.style.setProperty("--level",`${100 - Math.min(Math.max((voltage / maxVal) * 100, 0), 100)}%`);
@@ -994,22 +994,11 @@ document.addEventListener("DOMContentLoaded", () => {
       lastMessageTime = t;
 
       chambers.forEach((c, i) => {
-        const d =
-          Math.round(
-            (1 * Math.random() +
-              9 * Math.sin((t / 5000) * i * 2 * Math.PI) +
-              10) *
-              1000
-          ) / 1000;
-
-        c.sparkline.setData(
-          addAndConfine(c.sparkline.data, d, experimentHistory)
-        );
-
-        c.chamber.style.setProperty(
-          "--level",
-          `${100 - Math.min(Math.max((d / 20) * 100, 0), 100)}%`
-        );
+        const simulatedLevel = Math.abs(Math.pow((Math.sin( t * ((i+1) / 4000)) + 1) / 4.0, 2));
+        setExpPlot(c, i, {
+          "photodiodeVoltage": Math.round((simulatedLevel * 2048 * 1000.0) ),
+          "averageRawOpticalPower": Math.round(simulatedLevel * 256 * 1000.0) / 1000.0
+        });
       });
 
       const newGyroData = [
