@@ -785,7 +785,7 @@ function init() {
 
 function setExpPlot(board, i, sensor) {
   const maxVal = 0.256;
-  const voltage = Math.round((sensor.photodiodeVoltage * 0.00032) * 10) / 1000; // TODO: remove magic numbers = (0.256 * (0x8000 >> 4)), Gain 16X
+  const voltage = Math.round((sensor.photodiodeVoltage * 0.00032)) / 1000; // TODO: remove magic numbers = (0.256 * (0x8000 >> 4)), Gain 16X
   const opticalPower = sensor.averageRawOpticalPower;
 
   chambers[i].sparkline.setData(addAndConfine(chambers[i].sparkline.data, voltage, experimentHistory));
