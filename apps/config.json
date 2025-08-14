@@ -1,23 +1,33 @@
 {
-    "opc": {
-        "endpoint_url": "opc.tcp://0.0.0.0:4840/warr/telemetry/server/",
-        "namespace_uri": "http://rocketry.warr.com/opcua/server",
-        "requestedInterval": 25,
-        "browsePathTemplate": "/Objects/{namespaceIndex}:payload/{namespaceIndex}:dinolabs.{namespaceIndex}:data"
+    "active_data_source": "opcua",
+    "active_parser": "protobuf",
+    
+    "data_sources": {
+        "tcp": {
+            "host": "localhost",
+            "port": 8081
+        },
+        "opcua": {
+            "endpoint_url": "opc.tcp://0.0.0.0:4840/warr/telemetry/server/",
+            "namespace_uri": "http://rocketry.warr.com/opcua/server",
+            "requestedInterval": 25,
+            "browsePathTemplate": "/Objects/{namespaceIndex}:payload/{namespaceIndex}:dinolabs.{namespaceIndex}:data"
+        }
     },
-    "proto": {
-        "definition": "./proto/payload.proto",
-        "cobs_length": 2048
+    
+    "parsers": {
+        "protobuf": {
+            "definition": "./proto/payload.proto",
+            "cobs_length": 2048
+        },
+        "json": {}
     },
+    
     "local_server": {
-        "port": 8080
+        "port": 8083
     },
     "public_server": {
         "port": 8080
-    },
-    "tcpc": {
-        "host": "localhost",
-        "port": 8081
     },
     "tcp_api": {
         "port": "80",

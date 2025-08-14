@@ -32,6 +32,9 @@ async def main():
     payload_folder = await server.nodes.objects.add_folder(idx, "payload")
     dinolabs_object = await payload_folder.add_object(idx, "dinolabs")
     data_var = await dinolabs_object.add_variable(idx, "data", bytearray(b"\x00"), ua.VariantType.ByteString)
+    
+    # Make variable writable and ensure it sends change notifications
+    await data_var.set_writable(True)
 
     async with server:
         _logger.info("Server started")
@@ -40,7 +43,10 @@ async def main():
             try:
                 await asyncio.sleep(0.25)
                 buffer = source.example_generate_random_buffer()
-                await data_var.write_value(ua.DataValue(buffer))
+                _logger.info(f"Writing data to variable, buffer length: {len(buffer)}")
+                # Use set_value instead of write_value to trigger change notifications
+                await data_var.set_value(buffer)
+                _logger.info("Data written successfully")
             except ua.UaError as e:
                 _logger.error(f"UA error: {e}")
             except Exception as e:
