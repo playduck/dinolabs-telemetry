@@ -29,7 +29,7 @@ function SystemCard({ type, className = '' }) {
             <div class={styles.systemHeader}>
               <div class={styles.headerTitle}>
                 <BsCpu size={18} class={styles.headerIcon} />
-                <h3>SYSTEM</h3>
+                <h3>SYS</h3>
               </div>
               <div class={styles.spacer}></div>
               <div class={getStatusClass(systemData().SYSTEM.status, styles)}>
@@ -53,7 +53,7 @@ function SystemCard({ type, className = '' }) {
             <div class={styles.systemHeader}>
               <div class={styles.headerTitle}>
                 <BiSolidFlask size={18} class={styles.headerIcon} />
-                <h3>EXPERIMENT</h3>
+                <h3>EXP</h3>
               </div>
               <div class={styles.spacer}></div>
               <div class={getStatusClass(systemData().EXPERIMENT.status, styles)}>
@@ -77,7 +77,7 @@ function SystemCard({ type, className = '' }) {
             <div class={styles.systemHeader}>
               <div class={styles.headerTitle}>
                 <BsThermometerHalf size={18} class={styles.headerIcon} />
-                <h3>TEMPERATURE</h3>
+                <h3>TEMP</h3>
               </div>
               <div class={styles.spacer}></div>
               <div class={getStatusClass(systemData().TEMPERATURE.status, styles)}>
@@ -101,7 +101,7 @@ function SystemCard({ type, className = '' }) {
             <div class={styles.systemHeader}>
               <div class={styles.headerTitle}>
                 <BiSolidCarBattery size={18} class={styles.headerIcon} />
-                <h3>POWER</h3>
+                <h3>PWR</h3>
               </div>
               <div class={styles.spacer}></div>
               <div class={getStatusClass(systemData().POWER.status, styles)}>

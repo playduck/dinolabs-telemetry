@@ -1,7 +1,7 @@
 {
-    "active_data_source": "opcua",
-    "active_parser": "protobuf",
-    
+    "active_data_source": "dummy",
+    "active_parser": "json",
+
     "data_sources": {
         "tcp": {
             "host": "localhost",
@@ -12,9 +12,13 @@
             "namespace_uri": "http://rocketry.warr.com/opcua/server",
             "requestedInterval": 25,
             "browsePathTemplate": "/Objects/{namespaceIndex}:payload/{namespaceIndex}:dinolabs.{namespaceIndex}:data"
+        },
+        "dummy": {
+            "interval": 250,
+            "jitter": 0.1
         }
     },
-    
+
     "parsers": {
         "protobuf": {
             "definition": "./proto/payload.proto",
@@ -22,7 +26,7 @@
         },
         "json": {}
     },
-    
+
     "local_server": {
         "port": 8083
     },

@@ -1,5 +1,3 @@
-const path = require('path');
-
 class DataSourceFactory {
   static create(type, config) {
     switch (type) {
@@ -9,6 +7,9 @@ class DataSourceFactory {
       case 'opcua':
         const OpcuaDataSource = require('./dataSources/OpcuaDataSource');
         return new OpcuaDataSource(config);
+      case 'dummy':
+        const DummyDataSource = require('./dataSources/DummyDataSource');
+        return new DummyDataSource(config);
       default:
         throw new Error(`Unsupported data source type: ${type}`);
     }

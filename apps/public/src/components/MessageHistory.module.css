@@ -1,32 +1,7 @@
-.messageHistory {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--color-borderRadius);
-  overflow: hidden;
+/* MessageHistory specific styles */
+.messageHistoryContainer {
   position: relative;
 }
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: .5rem;
-  background: var(--color-surfaceSecondary);
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
-}
-
-.headerStats {
-  display: flex;
-  flex-direction: row;
-  gap: 0.5rem;
-  align-items: flex-end;
-}
-
 
 .messageList {
   flex: 1;

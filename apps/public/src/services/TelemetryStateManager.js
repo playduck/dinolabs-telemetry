@@ -92,10 +92,31 @@ class TelemetryStateManager {
       if (data.PowerState) {
         newState.systems = { ...prevState.systems };
         const powerStatus = determinePowerStatus(data.PowerState);
+
+        let chargeSource = 'UNKNOWN';
+        if(data.PowerState.powerState & 0b00000001) {
+          chargeSource = 'USB';
+        } else if(data.PowerState.powerState & 0b00000010) {
+          chargeSource = 'UMB';
+        } else if((data.PowerState.powerState & 0b00000011) == false) {
+          chargeSource = 'NONE';
+        }
+
+        const rail_vbat_failed = (data.PowerState.powerState & 0b00001000);
+        const rail_12v_failed = (data.PowerState.powerState & 0b00010000);
+        const rail_5v_failed = (data.PowerState.powerState & 0b00100000);
+        const rail_3v3_failed = (data.PowerState.powerState & 0b01000000);
+
+        const rail_vbat_inrange = (data.PowerState.V_Battery >= 12000 && data.PowerState.V_Battery <= 18000);
+        const rail_12v_inrange = (data.PowerState.V_Rail_12V >= 11400 && data.PowerState.V_Rail_12V <= 12600);
+        const rail_5v_inrange = (data.PowerState.V_Rail_5V >= 4600 && data.PowerState.V_Rail_5V <= 5400);
+        const rail_3v3_inrange = (data.PowerState.V_Rail_3V3 >= 2900 && data.PowerState.V_Rail_3V3 <= 3400);
+
         newState.systems.POWER = {
           status: powerStatus,
           batteryVoltage: data.PowerState.V_Battery ?? null,
           powerState: data.PowerState.powerState ?? null,
+          chargeSource: chargeSource,
           rails: {
             V_Rail_12V: data.PowerState.V_Rail_12V,
             I_Rail_12V: data.PowerState.I_Rail_12V,
@@ -104,8 +125,19 @@ class TelemetryStateManager {
             V_Rail_3V3: data.PowerState.V_Rail_3V3,
             I_Rail_3V3: data.PowerState.I_Rail_3V3,
             V_Charge_Input: data.PowerState.V_Charge_Input,
-            I_Charge_Battery: data.PowerState.I_Charge_Battery,
-            I_Battery: data.PowerState.I_Battery
+            I_Charge_Input: data.PowerState.I_Charge_Input,
+            I_Battery: data.PowerState.I_Battery,
+
+            rail_vbat_failed: rail_vbat_failed,
+            rail_12v_failed: rail_12v_failed,
+            rail_5v_failed: rail_5v_failed,
+            rail_3v3_failed: rail_3v3_failed,
+
+            rail_vbat_inrange: rail_vbat_inrange,
+            rail_12v_inrange: rail_12v_inrange,
+            rail_5v_inrange: rail_5v_inrange,
+            rail_3v3_inrange: rail_3v3_inrange
+
           }
         };
         newState.timestamps.lastPowerMessage = now;

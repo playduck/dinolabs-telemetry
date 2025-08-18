@@ -11,7 +11,7 @@
 }
 
 .value {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-weight: 600;
   font-size: 1rem;
   color: var(--color-text);

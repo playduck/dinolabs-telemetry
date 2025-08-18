@@ -4,6 +4,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import SystemCard from './components/SystemCard';
+import PowerPanel from './components/PowerPanel';
 import MessageHistory from './components/MessageHistory';
 import telemetryService from './services/TelemetryService';
 
@@ -22,6 +23,7 @@ function AppContent() {
           <SystemCard type="EXPERIMENT" className="experiment-grid-item" />
           <SystemCard type="TEMPERATURE" className="temperature-grid-item" />
           <SystemCard type="POWER" className="power-grid-item" />
+          <PowerPanel className="power-panel-grid-item" />
           <MessageHistory className="message-history-grid-item" />
         </div>
       </div>

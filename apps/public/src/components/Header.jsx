@@ -90,7 +90,7 @@ function Header() {
           <span id="connection" class={getConnectionClass()}>{formatRtt()}</span>
         </div>
         <div>
-          <label>Bad Cnt</label>
+          <label>Bad Rx</label>
           <span id="bad-messages" class={getBadMessageClass()}>{badMessageCount()}</span>
         </div>
       </div>

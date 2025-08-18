@@ -22,19 +22,19 @@ function MessageHistory({ className = '' }) {
   let scrollTopBefore = 0;
   let wasAtCapacity = false;
   let isScrollingToTop = false;
-  
+
   const handleScroll = () => {
     if (messageListRef) {
       const isAtTop = messageListRef.scrollTop < 50;
       setShowBackToTop(!isAtTop);
     }
   };
-  
+
   const scrollToTop = () => {
     if (messageListRef) {
       isScrollingToTop = true;
       messageListRef.scrollTo({ top: 0, behavior: 'smooth' });
-      
+
       // Reset flag after scroll animation completes
       setTimeout(() => {
         isScrollingToTop = false;
@@ -50,7 +50,7 @@ function MessageHistory({ className = '' }) {
     let deltaColorClass = 'default';
     const currentAvg = avgDeltaT();
     if (currentAvg !== null && deltaTime > 0) {
-      const tolerance = Math.max(2, currentAvg * 0.02); // Minimum 3ms tolerance or 2% of average
+      const tolerance = Math.max(5, currentAvg * 0.05); // Minimum 5ms tolerance or 5% of average
 
       if (deltaTime > currentAvg + tolerance) {
         deltaColorClass = 'above';
@@ -73,7 +73,7 @@ function MessageHistory({ className = '' }) {
     setMessages(prev => {
       const messageList = messageListRef;
       const wasAtTop = !messageList || messageList.scrollTop < 10;
-      
+
       // Store current scroll position and capacity status if user is not at top
       // But don't preserve position if we're actively scrolling to top
       if (!wasAtTop && messageList && !isScrollingToTop) {
@@ -83,7 +83,7 @@ function MessageHistory({ className = '' }) {
       } else {
         preserveScrollPosition = false;
       }
-      
+
       const updated = [newMessage, ...prev];
       return updated.slice(0, maxHistorySize);
     });
@@ -269,7 +269,7 @@ function MessageHistory({ className = '' }) {
   createEffect(() => {
     // Access the messages signal to trigger this effect when messages change
     messages();
-    
+
     if (preserveScrollPosition && messageListRef) {
       // Use requestAnimationFrame to ensure DOM has updated
       requestAnimationFrame(() => {
@@ -279,18 +279,18 @@ function MessageHistory({ className = '' }) {
             // Estimate height of one message to adjust scroll position
             const firstChild = messageListRef.firstElementChild;
             const messageHeight = firstChild ? firstChild.offsetHeight + 4 : 50; // +4 for gap
-            
+
             // Compensate for the new message added at the top
             messageListRef.scrollTop = scrollTopBefore + messageHeight;
           } else {
             // When not at capacity: just one added to top
             const firstChild = messageListRef.firstElementChild;
             const messageHeight = firstChild ? firstChild.offsetHeight + 4 : 50;
-            
+
             // Compensate for the new message added at the top
             messageListRef.scrollTop = scrollTopBefore + messageHeight;
           }
-          
+
           preserveScrollPosition = false;
         }
       });
@@ -302,13 +302,13 @@ function MessageHistory({ className = '' }) {
   });
 
   return (
-    <div class={`${styles.messageHistory} ${className}`}>
-      <div class={styles.header}>
+    <div class={`${commonStyles.componentPanel} ${styles.messageHistoryContainer} ${className}`}>
+      <div class={commonStyles.componentHeader}>
         <h3>Message History</h3>
-        <div class={styles.headerStats}>
+        <div class={commonStyles.headerStats}>
           <div class={`${commonStyles.statBox} ${styles.lastMessage}`}>
             <ValueDisplay
-              label="Last RX"
+              label="Last Rx"
               value={formatLastMessage}
               unit={getLastMessageUnit}
               formatFn={(val) => val}
@@ -347,7 +347,7 @@ function MessageHistory({ className = '' }) {
         )}
       </div>
       {showBackToTop() && (
-        <button 
+        <button
           class={styles.backToTopButton}
           onClick={scrollToTop}
           title="Return to top"
