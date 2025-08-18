@@ -1,0 +1,43 @@
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label {
+  color: var(--color-textSecondary);
+  font-size: 0.9rem;
+  margin-right: 0.5rem;
+}
+
+.value {
+  font-family: monospace;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-text);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.withUnit::after {
+  content: var(--unit, "");
+  padding-left: 0.5ex;
+  font-weight: 200;
+  font-size: 0.9em;
+  color: var(--color-textSecondary);
+}
+
+.flash {
+  animation: valueFlash 0.5s ease-out;
+}
+
+@keyframes valueFlash {
+  0% {
+    color: var(--color-primary);
+    transform: scale(1.05);
+  }
+  100% {
+    color: var(--color-text);
+    transform: scale(1);
+  }
+}

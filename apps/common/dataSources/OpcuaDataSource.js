@@ -16,7 +16,7 @@ class OpcuaDataSource extends EventEmitter {
   async start() {
     try {
       console.log(this.TAG, `Starting OPC-UA connection to ${this.config.endpoint_url}`);
-      
+
       this.client = opcua.OPCUAClient.create({
         applicationName: "WARR Telemetry Client",
         connectionStrategy: {
@@ -24,10 +24,10 @@ class OpcuaDataSource extends EventEmitter {
           maxRetry: 3
         }
       });
-      
+
       await this.client.connect(this.config.endpoint_url);
       this.session = await this.client.createSession();
-      
+
       this.subscription = await this.session.createSubscription2({
         requestedPublishingInterval: this.config.requestedInterval,
         requestedLifetimeCount: 60,
@@ -43,7 +43,6 @@ class OpcuaDataSource extends EventEmitter {
       });
 
       this.subscription.on("keepalive", () => {
-        console.log(this.TAG, "Subscription keepalive received");
       });
 
       this.subscription.on("terminated", () => {
@@ -54,27 +53,26 @@ class OpcuaDataSource extends EventEmitter {
       const possibleNodeIds = [
         'ns=2;i=3'  // This is the actual data variable node ID
       ];
-      
+
       let monitored = null;
       for (const nodeId of possibleNodeIds) {
         try {
           console.log(this.TAG, `Trying to monitor node: ${nodeId}`);
           // Try different monitoring parameters
           console.log(this.TAG, `Monitoring with params: samplingInterval=${this.config.requestedInterval}`);
-          
+
           // Try very aggressive monitoring settings
           monitored = await this.subscription.monitor({
             nodeId: nodeId,
             attributeId: opcua.AttributeIds.Value
           }, {
-            samplingInterval: 100, // Much faster sampling (100ms instead of 25ms config)  
+            samplingInterval: 100, // Much faster sampling (100ms instead of 25ms config)
             discardOldest: true,
             queueSize: 1000,
             filter: null // No filtering
           }, opcua.TimestampsToReturn.Both);
-          
+
           console.log(this.TAG, `Monitored item created with ID: ${monitored.monitoredItemId}`);
-          
           console.log(this.TAG, `Successfully monitoring node: ${nodeId}`);
           break;
         } catch (error) {
@@ -88,20 +86,13 @@ class OpcuaDataSource extends EventEmitter {
 
       // Add all possible event handlers for debugging
       console.log(this.TAG, "Setting up monitored item event handlers...");
-      
+
       monitored.on("changed", (dataValue) => {
-        console.log(this.TAG, "🎉 Data changed event received!");
-        console.log(this.TAG, "DataValue:", JSON.stringify(dataValue, null, 2));
-        
+
         if (dataValue.value && dataValue.value.value) {
-          console.log(this.TAG, "Emitting data:", dataValue.value.value);
           this.emit('message', dataValue.value.value);
         } else {
           console.log(this.TAG, "No value.value, checking dataValue structure");
-          console.log(this.TAG, "Available properties:", Object.keys(dataValue));
-          if (dataValue.value) {
-            console.log(this.TAG, "Value properties:", Object.keys(dataValue.value));
-          }
           this.emit('message', dataValue);
         }
       });
@@ -117,11 +108,11 @@ class OpcuaDataSource extends EventEmitter {
           const nodeId = opcua.resolveNodeId('ns=2;i=3');
           const currentValue = await this.session.readVariableValue(nodeId);
           console.log(this.TAG, "Current node value:", JSON.stringify(currentValue, null, 2));
-          
+
           // Decode the status code
           const statusCode = currentValue.statusCode.value;
           console.log(this.TAG, `Status code: ${statusCode} (0x${statusCode.toString(16)})`);
-          
+
           // Let's browse the namespace to see what nodes actually exist
           console.log(this.TAG, "Browsing available nodes...");
           try {
@@ -132,15 +123,15 @@ class OpcuaDataSource extends EventEmitter {
               nodeId: ref.nodeId.toString(),
               nodeClass: ref.nodeClass
             })));
-            
-            // Try to browse our namespace - use the correct node ID from browse results  
+
+            // Try to browse our namespace - use the correct node ID from browse results
             const payloadNode = opcua.resolveNodeId("ns=2;i=1");
             const payloadBrowse = await this.session.browse(payloadNode);
             console.log(this.TAG, "Payload folder contents:", payloadBrowse.references.map(ref => ({
-              browseName: ref.browseName.toString(), 
+              browseName: ref.browseName.toString(),
               nodeId: ref.nodeId.toString()
             })));
-            
+
             // If payload has contents, browse deeper
             if (payloadBrowse.references.length > 0) {
               for (const ref of payloadBrowse.references) {
@@ -156,11 +147,11 @@ class OpcuaDataSource extends EventEmitter {
                 }
               }
             }
-            
+
           } catch (browseError) {
             console.error(this.TAG, "Browse error:", browseError.message);
           }
-          
+
         } catch (error) {
           console.error(this.TAG, "Error reading current value:", error);
         }
@@ -168,13 +159,7 @@ class OpcuaDataSource extends EventEmitter {
 
       console.log(this.TAG, "OPC-UA connection established");
       this.retry_count = 0;
-      
-      // TEMPORARY: Test data emission to verify logging pipeline works
-      setTimeout(() => {
-        console.log(this.TAG, "Emitting test data manually to verify pipeline");
-        this.emit('message', Buffer.from("test data from opcua source"));
-      }, 2000);
-      
+
     } catch(error) {
       console.error(this.TAG, "Failed to connect to OPC-UA server:", error);
       setTimeout(() => this.reconnect(), this.reconnectTimeout);

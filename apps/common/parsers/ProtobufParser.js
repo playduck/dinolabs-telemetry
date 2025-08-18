@@ -14,7 +14,7 @@ class ProtobufParser extends IParser {
       console.error(this.TAG, "protobuf uninitialized");
       return undefined;
     };
-    
+
     cobs.maxLength = config.cobs_length;
     this.init();
   }
@@ -46,7 +46,7 @@ class ProtobufParser extends IParser {
             console.error(this.TAG, "CRC mismatch");
             return undefined;
           } else {
-            console.log(this.TAG, "CRC match");
+            // console.log(this.TAG, "CRC match");
           }
 
           delete message.crc32;

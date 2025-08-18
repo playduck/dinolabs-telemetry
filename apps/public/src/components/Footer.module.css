@@ -1,0 +1,94 @@
+.footer {
+  background-color: var(--color-warrBackground);
+  z-index: 999999;
+  position: sticky;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* border-top: 1px solid var(--color-warrBlue1); */
+  padding: 0.5ex 1em .5ex 1em;
+  margin-top: 1ex;
+  color: var(--color-textSecondary);
+}
+
+.mobileTopRow {
+  display: none;
+}
+
+.timeDisplay {
+  font-size: 1em;
+  color: var(--color-textSecondary);
+  font-family: monospace;
+}
+
+.dateText {
+  color: var(--color-text);
+}
+
+.timeText {
+  color: var(--color-primary);
+}
+
+.footerText {
+  color: var(--color-gridSecondary);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.themeSelector {
+  display: flex;
+  font-size: 0.9rem;
+  padding: 0.5ex;
+  width: fit-content;
+}
+
+.themeOption {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-textSecondary);
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1em;
+  position: relative;
+}
+
+.themeOption svg {
+  color: inherit;
+}
+
+.themeOption.active {
+  color: var(--color-primary);
+}
+
+@media screen and (max-width: 600px) {
+  .footer {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobileTopRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .footer > .timeDisplay {
+    display: none;
+  }
+
+  .footer > .themeSelector {
+    display: none;
+  }
+
+  .footerText {
+    width: 100%;
+    text-align: center;
+  }
+}

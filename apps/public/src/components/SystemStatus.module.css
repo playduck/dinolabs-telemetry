@@ -1,0 +1,220 @@
+.systemGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.systemCard {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--color-borderRadius);
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.systemCard:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.systemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  gap: 0.5rem;
+}
+
+.systemHeader h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.headerIcon {
+  color: var(--color-textSecondary);
+  flex-shrink: 0;
+}
+
+
+.systemContent {
+  font-family: monospace;
+}
+
+.spacer {
+  flex-grow: 1;
+  height: 1em;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-border),
+    var(--color-border) 1px,
+	transparent 1px,
+	transparent 0.75ex
+  );
+}
+
+.status {
+  padding: 0.25rem 0;
+  border-radius: var(--color-borderRadius);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statusOnline {
+  color: var(--color-warrGreen);
+}
+
+.statusOffline {
+  color: var(--color-warrRed);
+}
+
+.statusError {
+  color: var(--color-warrRed);
+}
+
+.modeDisplay {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modeDisplay label {
+  color: var(--color-textSecondary);
+  font-size: 0.9rem;
+}
+
+.temperatureDisplay {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.temperatureDisplay label {
+  color: var(--color-textSecondary);
+  font-size: 0.9rem;
+}
+
+.temperatureValue {
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.temperatureWithUnit::after {
+  content: "°C";
+  padding-left: 0.5ex;
+  font-weight: 200;
+  font-size: 0.9em;
+  color: var(--color-textSecondary);
+}
+
+.voltageDisplay {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.voltageDisplay label {
+  color: var(--color-textSecondary);
+  font-size: 0.9rem;
+}
+
+.voltageValue {
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.voltageWithUnit::after {
+  content: "V";
+  padding-left: 0.5ex;
+  font-weight: 200;
+  font-size: 0.9em;
+  color: var(--color-textSecondary);
+}
+
+/* SYSTEM specific styles */
+.modeValue {
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.modeError {
+  color: var(--color-warrRed);
+}
+
+.modeArmed {
+  color: var(--color-warrYellow);
+}
+
+.modeFlight {
+  color: var(--color-warrBlue1);
+}
+
+/* EXPERIMENT specific styles */
+.chambersContainer {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.chambersContainer label {
+  color: var(--color-textSecondary);
+  font-size: 0.9rem;
+}
+
+.chambers {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.chamber {
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  opacity: 1;
+  background-color: var(--color-textSecondary);
+  transition: background-color 1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-background);
+}
+
+.chamber.chamberReady {
+  background-color: var(--color-warrBlue1);
+}
+
+/* .chamber:hover {
+  transform: scale(1.2);
+} */
+
+
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .systemGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .systemCard {
+    /* padding: 0.75rem; */
+  }
+}

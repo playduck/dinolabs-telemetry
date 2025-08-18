@@ -24,12 +24,12 @@ router.use(
   express.static(path.join(__dirname, "../../../node_modules/three/"))
 );
 
-// Serve static files from the public folder
-router.use(express.static(path.join(__dirname, "../../public")));
+// Serve static files from the built SolidJS dist folder
+router.use(express.static(path.join(__dirname, "../../public/dist")));
 
 // Serve index.html as the default route
 router.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../public/index.html"));
+  res.sendFile(path.join(__dirname, "../../public/dist/index.html"));
 });
 
 module.exports = router;

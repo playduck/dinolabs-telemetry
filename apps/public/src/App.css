@@ -1,0 +1,247 @@
+:root {
+  /* Default theme colors (will be overridden by ThemeProvider) */
+  --color-primary: #4facfe;
+  --color-secondary: #667eea;
+  --color-accent: #764ba2;
+  --color-background: #0c0c0c;
+  --color-backgroundGradient: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 100%);
+  --color-surface: #1a1a2e;
+  --color-surfaceSecondary: rgba(255, 255, 255, 0.05);
+  --color-border: rgba(79, 172, 254, 0.2);
+  --color-text: #ffffff;
+  --color-textSecondary: rgba(255, 255, 255, 0.8);
+  --color-success: #4caf50;
+  --color-error: #f44336;
+  --color-warning: #ff9800;
+  --color-info: #2196f3;
+  --color-grid: #444444;
+  --color-gridSecondary: #888888;
+
+
+  /* Browser UI accent color */
+  accent-color: var(--color-primary);
+}
+
+.App {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  color: var(--color-text);
+}
+
+.content {
+  grid-row: 2;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  grid-template-rows: repeat(10, minmax(0, 1fr));
+  gap: 0.5rem;
+  padding: 0.5rem;
+  height: calc(100vh - var(--header-height, 60px) - var(--footer-height, 60px));
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Grid positioning classes */
+.system-grid-item {
+  grid-column: 1 / 5;
+  grid-row: 1;
+}
+
+.experiment-grid-item {
+  grid-column: 5 / 10;
+  grid-row: 1;
+}
+
+.temperature-grid-item {
+  grid-column: 10 / 15;
+  grid-row: 1;
+}
+
+.power-grid-item {
+  grid-column: 15 / 20;
+  grid-row: 1;
+}
+
+.message-history-grid-item {
+  grid-column: 20 / 25;
+  grid-row: 1 / 6;
+}
+
+/* Mobile layout - stack vertically */
+@media (max-width: 768px) {
+  .main-layout {
+    display: flex!important;
+    flex-direction: column;
+    /* grid-template-rows: auto 1fr; */
+  }
+
+  .system-grid-item,
+  .experiment-grid-item,
+  .temperature-grid-item,
+  .power-grid-item,
+  .message-history-grid-item {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--color-backgroundGradient);
+  color-scheme: dark light;
+}
+
+/* Enhanced scrollbar theming */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 6px;
+  border: 2px solid var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--color-surface);
+}
+
+/* Selection styling */
+::selection {
+  background: var(--color-primary);
+  color: var(--color-text);
+}
+
+::-moz-selection {
+  background: var(--color-primary);
+  color: var(--color-text);
+}
+
+/* Global header typography */
+h1, h2, h3, h4 {
+  font-family: Montserrat, Helvetica, Arial, sans-serif;
+  font-weight: 700;
+}
+
+ h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Dynamic glow utility classes using CSS variables */
+.glow {
+  --glow-color: var(--color-warrGreen);
+  --glow-alpha: 0.2;
+  box-shadow:
+    0 0 0.3rem var(--glow-color),
+    0 0 0.6rem color-mix(in srgb, var(--glow-color), transparent calc(100% - var(--glow-alpha) * 100%));
+}
+
+/* Predefined glow colors for convenience */
+.glow-green {
+  --glow-color: var(--color-warrGreen);
+  --glow-alpha: 0.2;
+  box-shadow:
+    0 0 0.3rem var(--glow-color),
+    0 0 0.6rem color-mix(in srgb, var(--glow-color), transparent 80%);
+}
+
+.glow-red {
+  --glow-color: var(--color-warrRed);
+  --glow-alpha: 0.25;
+  box-shadow:
+    0 0 0.3rem var(--glow-color),
+    0 0 0.6rem color-mix(in srgb, var(--glow-color), transparent 75%);
+}
+
+.glow-blue {
+  --glow-color: var(--color-warrBlue1);
+  --glow-alpha: 0.25;
+  box-shadow:
+    0 0 0.3rem var(--glow-color),
+    0 0 0.6rem color-mix(in srgb, var(--glow-color), transparent 75%);
+}
+
+/* Animation classes */
+.glow-green-animated {
+  animation: glowGreenShimmer 3s ease-in-out infinite;
+}
+
+.glow-red-animated {
+  animation: glowRedPulse 1.5s infinite;
+}
+
+.glow-blue-animated {
+  animation: glowBluePulse 0.8s infinite;
+}
+
+/* Global glow animations */
+@keyframes glowGreenShimmer {
+  0%, 100% {
+    box-shadow:
+      0 0 0.5rem var(--color-warrGreen),
+      0 0 1rem rgba(0, 255, 0, 0.3),
+      inset 0 0 0.2rem rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 0.8rem var(--color-warrGreen),
+      0 0 1.5rem rgba(0, 255, 0, 0.5),
+      inset 0 0 0.3rem rgba(255, 255, 255, 0.6);
+  }
+}
+
+@keyframes glowRedPulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow:
+      0 0 0.5rem var(--color-warrRed),
+      0 0 1rem rgba(255, 0, 0, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow:
+      0 0 1rem var(--color-warrRed),
+      0 0 2rem rgba(255, 0, 0, 0.6);
+    transform: scale(1.1);
+  }
+}
+
+@keyframes glowBluePulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow:
+      0 0 0.5rem var(--color-warrBlue1),
+      0 0 1rem rgba(0, 100, 255, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow:
+      0 0 0.8rem var(--color-warrBlue1),
+      0 0 1.5rem rgba(0, 100, 255, 0.6);
+    transform: scale(1.05);
+  }
+}

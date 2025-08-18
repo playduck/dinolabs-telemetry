@@ -1,0 +1,110 @@
+/* Common layout utilities */
+.spacer {
+  flex-grow: 1;
+}
+
+.flexBetween {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flexCenter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flexColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Common typography utilities */
+.monospaceText {
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.smallText {
+  font-size: 0.75rem;
+}
+
+.mediumText {
+  font-size: 0.8rem;
+}
+
+.largeText {
+  font-size: 1.1rem;
+}
+
+/* Common container styles */
+.borderedContainer {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--color-borderRadius);
+}
+
+.statBox {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  background: var(--color-background);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--color-borderRadius);
+  border: 1px solid var(--color-border);
+  white-space: pre;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--color-borderRadius);
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Common animations */
+.glowGreen {
+  animation: glowGreenShimmer 3s ease-in-out infinite;
+}
+
+.glowRed {
+  animation: glowRedPulse 1.5s infinite;
+}
+
+.glowBlue {
+  animation: glowBluePulse 0.8s infinite;
+}
+
+@keyframes glowGreenShimmer {
+  0%, 100% {
+    box-shadow: 0 0 0.5rem var(--color-warrGreen), 0 0 1rem rgba(0, 255, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 1rem var(--color-warrGreen), 0 0 2rem rgba(0, 255, 0, 0.5);
+  }
+}
+
+@keyframes glowRedPulse {
+  0%, 100% {
+    box-shadow: 0 0 0.5rem var(--color-warrRed), 0 0 1rem rgba(255, 0, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 1rem var(--color-warrRed), 0 0 2rem rgba(255, 0, 0, 0.6);
+  }
+}
+
+@keyframes glowBluePulse {
+  0%, 100% {
+    box-shadow: 0 0 0.5rem var(--color-warrBlue1), 0 0 1rem rgba(0, 100, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 1rem var(--color-warrBlue1), 0 0 2rem rgba(0, 100, 255, 0.6);
+  }
+}

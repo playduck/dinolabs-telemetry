@@ -1,0 +1,251 @@
+/* Header Styles */
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2em;
+  background-color: var(--color-warrBackground);
+  position: sticky;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 99999;
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+h1 {
+  margin: 0.5em 0;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+}
+
+.nameText {
+  width: fit-content;
+  vertical-align: middle;
+  line-height: 80%;
+  height: 100%;
+  /* color: var(--color-warrBackground); */
+  /* background-color: var(--color-text); */
+  color: var(--color-text);
+}
+
+.nameText::before {
+  content: "WARR D.I.N.O.labs Telemetry";
+}
+
+.demoMode {
+  color: var(--color-warrRed);
+  font-weight: 400;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 1rem !important;
+  min-width: 25%;
+}
+
+.demoMode h1 {
+  font-weight: 800;
+  font-size: 2rem !important;
+  text-align: center;
+  animation: blinker 2.5s step-start infinite;
+}
+
+.demoMode span {
+  width: 100%;
+  text-align: center;
+  display: block;
+}
+
+@keyframes blinker {
+  from { opacity: 1.0; }
+  5% { opacity: 0.0; }
+  to { opacity: 1.0; }
+}
+
+.logo {
+  width: 1.75em;
+  margin: 0.25ex 0.25em 0.25ex 0;
+  vertical-align: middle;
+  line-height: normal;
+}
+
+.spacer {
+  flex-grow: 1;
+  height: 2em;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--color-gridSecondary),
+    var(--color-gridSecondary) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  background-size: 17px 17px;
+  margin: 0 1em;
+  align-self: center;
+  opacity: 0.4;
+  animation: spacerScroll 3s linear infinite;
+}
+
+@keyframes spacerScroll {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 17px 17px;
+  }
+}
+
+
+.info {
+  font-size: 1.0em !important;
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 1em;
+  padding-right: 1em;
+}
+
+.info > div {
+  display: contents;
+}
+
+.info label {
+  text-align: right;
+  padding: 0;
+  margin: 0;
+}
+
+.info span {
+  padding: 0;
+  margin: 0;
+  border-bottom: 0;
+  min-width: 4em;
+}
+
+.connection {
+  position: relative;
+}
+
+.connection::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1ex;
+  height: 1ex;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.connectionConnected {
+  color: var(--color-warrGreen)!important;
+}
+
+.connectionConnected::before {
+  background-color: var(--color-warrGreen);
+  box-shadow:
+    0 0 0.5rem var(--color-warrGreen),
+    0 0 1rem rgba(0, 255, 0, 0.3),
+    inset 0 0 0.2rem rgba(255, 255, 255, 0.4);
+  animation: glowGreenShimmer 3s ease-in-out infinite;
+}
+
+.connectionConnected::after {
+  content: "ms";
+  padding-left: 0.5ex;
+  font-weight: 200;
+  font-size: 0.9em;
+  color: var(--color-textSecondary);
+}
+
+.connectionDisconnected {
+  color: var(--color-warrRed);
+}
+
+.connectionDisconnected::before {
+  background-color: var(--color-warrRed);
+  box-shadow:
+    0 0 0.5rem var(--color-warrRed),
+    0 0 1rem rgba(255, 0, 0, 0.4);
+  animation: glowRedPulse 1.5s infinite;
+}
+
+.connectionMeasuring {
+  color: var(--color-warrBlue1);
+}
+
+.connectionMeasuring::before {
+  background-color: var(--color-warrBlue1);
+  box-shadow:
+    0 0 0.5rem var(--color-warrBlue1),
+    0 0 1rem rgba(0, 100, 255, 0.4);
+  animation: glowBluePulse 0.8s infinite;
+}
+
+
+/* Header-specific info display elements */
+.infoValue {
+  font-family: monospace;
+  font-size: 1.0rem;
+  font-weight: 600;
+  color: var(--color-text);
+  position: relative;
+}
+
+.badMessages {
+  min-width: 4em;
+  transition: all 0.3s ease;
+}
+
+
+.badMessagesFlash {
+  animation: badMessageFlash 2s ease-out;
+}
+
+@keyframes badMessageFlash {
+  0% {
+    color: var(--color-warrRed);
+    transform: scale(1.1);
+  }
+  10% {
+    color: var(--color-warrRed);
+    transform: scale(1.1);
+  }
+  100% {
+    color: var(--color-text);
+    transform: scale(1);
+  }
+}
+
+
+
+@media only screen and (max-width: 900px) {
+  .header {
+    font-size: 0.9em;
+    padding: 0!important;
+  }
+
+  .nameText {
+    font-size: 0.8em;
+  }
+
+  .nameText::before {
+    content: "D.I.N.O. TLM";
+  }
+
+  .logo {
+    width: 2em;
+    padding-left: 0.5em;
+  }
+
+  .spacer {
+    display: none;
+  }
+
+
+}

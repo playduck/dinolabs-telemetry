@@ -40,7 +40,7 @@ class PostApi {
     const req = https.request(options);
 
     req.on('error', (err) => {
-      console.error(TAG, 'Error occurred:', err);
+      // console.error(TAG, 'Error occurred:', err);
       if(typeof(callback) === "function") {
         callback(err);
       }
@@ -53,14 +53,14 @@ class PostApi {
     });
 
     req.on('response', (res) => {
-      console.log(TAG, 'Response received:', res.statusCode);
+      // console.log(TAG, 'Response received:', res.statusCode);
       let response = '';
       res.on('data', (chunk) => {
         response += chunk;
       });
       res.on('end', () => {
         if(res.statusCode != 200) {
-          console.log(TAG, 'Response body:', response);
+          // console.log(TAG, 'Response body:', response);
         }
         if(typeof(callback) === "function") {
           callback(null, response);
@@ -87,7 +87,7 @@ class PostApi {
   }
 
   onError(err) {
-    console.error(TAG, 'Error occurred:', err);
+    // console.error(TAG, 'Error occurred:', err);
     this.reconnect();
     this.connected = false;
   }

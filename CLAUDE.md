@@ -1,0 +1,2 @@
+- In Solid.js, always pass signal accessor functions (not their computed values) to components, and ensure signals are called within reactive contexts like createMemo or
+  during render. Breaking the reactivity chain by pre-computing values outside the component prevents Solid from tracking dependencies and updating the UI.
