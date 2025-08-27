@@ -61,6 +61,13 @@ function Header() {
       ? `${styles.infoValue} ${styles.badMessages} ${styles.badMessagesFlash}`
       : `${styles.infoValue} ${styles.badMessages}`;
   };
+
+  const getSpacerClass = () => {
+    const status = connectionStatus();
+    return !status.connected 
+      ? `${styles.spacer} ${styles.spacerOffline}`
+      : styles.spacer;
+  };
   return (
     <header class={styles.header}>
       <h1 class={styles.name}>
@@ -83,7 +90,7 @@ function Header() {
         <h1>DEMO MODE</h1>
         <span>displaying dummy data</span>
       </span>
-      <div class={styles.spacer}></div>
+      <div class={getSpacerClass()}></div>
       <div class={styles.info}>
         <div>
           <label>WS RTT</label>

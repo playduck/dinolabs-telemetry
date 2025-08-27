@@ -34,3 +34,8 @@ export const getModeDisplay = (mode, systemModeCode) => {
   }
   return mode;
 };
+
+export const isErrorState = (status) => {
+  // Only NOMINAL is considered a non-error state, everything else is an error
+  return status.toUpperCase() !== 'NOMINAL';
+};

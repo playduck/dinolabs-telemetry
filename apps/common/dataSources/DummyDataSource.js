@@ -41,7 +41,7 @@ class DummyDataSource extends EventEmitter {
           I_Charge_Input: this.debugUniform(0, 0.5),
           V_Rail_12V: this.debugUniform(11.5, 12.2),
           I_Rail_12V: this.debugUniform(0.8, 1),
-          V_Rail_5V: this.debugUniform(4.5, 5.2),
+          V_Rail_5V: this.debugUniform(4.7, 5.2),
           I_Rail_5V: this.debugUniform(1.0, 2.0),
           V_Rail_3V3: this.debugUniform(3.18, 3.45),
           I_Rail_3V3: this.debugUniform(0.7, 1.2),
@@ -113,6 +113,7 @@ class DummyDataSource extends EventEmitter {
           rawErrorCount: 0,
           cpuUsage: this.debugUniform(0, 100),
           storageCapacity: 63242,
+          bootCount: 42, // Simulated boot/reset counter
           IMU: {
             accX: Math.round(0.0 * 1000),
             accY: Math.round(1.0 * 1000),

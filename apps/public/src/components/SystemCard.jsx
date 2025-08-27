@@ -3,7 +3,7 @@ import { BsCpu, BsThermometerHalf } from 'solid-icons/bs';
 import { BiSolidFlask, BiSolidCarBattery } from 'solid-icons/bi';
 import ValueDisplay from './shared/ValueDisplay';
 import { useSystemsState } from '../hooks/useTelemetryState';
-import { SYSTEM_MODES, getStatusClass, getModeClass, getModeDisplay } from '../utils/systemHelpers';
+import { SYSTEM_MODES, getStatusClass, getModeClass, getModeDisplay, isErrorState } from '../utils/systemHelpers';
 
 function SystemCard({ type, className = '' }) {
   // Use centralized telemetry state instead of local state management
@@ -25,7 +25,7 @@ function SystemCard({ type, className = '' }) {
     switch (type) {
       case 'SYSTEM':
         return (
-          <div class={`${styles.systemCard} ${className}`}>
+          <div class={`${styles.systemCard} ${isErrorState(systemData().SYSTEM.status) ? styles.systemCardError : ''} ${className}`}>
             <div class={styles.systemHeader}>
               <div class={styles.headerTitle}>
                 <BsCpu size={18} class={styles.headerIcon} />
@@ -49,7 +49,7 @@ function SystemCard({ type, className = '' }) {
 
       case 'EXPERIMENT':
         return (
-          <div class={`${styles.systemCard} ${className}`}>
+          <div class={`${styles.systemCard} ${isErrorState(systemData().EXPERIMENT.status) ? styles.systemCardError : ''} ${className}`}>
             <div class={styles.systemHeader}>
               <div class={styles.headerTitle}>
                 <BiSolidFlask size={18} class={styles.headerIcon} />
@@ -73,7 +73,7 @@ function SystemCard({ type, className = '' }) {
 
       case 'TEMPERATURE':
         return (
-          <div class={`${styles.systemCard} ${className}`}>
+          <div class={`${styles.systemCard} ${isErrorState(systemData().TEMPERATURE.status) ? styles.systemCardError : ''} ${className}`}>
             <div class={styles.systemHeader}>
               <div class={styles.headerTitle}>
                 <BsThermometerHalf size={18} class={styles.headerIcon} />
@@ -97,7 +97,7 @@ function SystemCard({ type, className = '' }) {
 
       case 'POWER':
         return (
-          <div class={`${styles.systemCard} ${className}`}>
+          <div class={`${styles.systemCard} ${isErrorState(systemData().POWER.status) ? styles.systemCardError : ''} ${className}`}>
             <div class={styles.systemHeader}>
               <div class={styles.headerTitle}>
                 <BiSolidCarBattery size={18} class={styles.headerIcon} />

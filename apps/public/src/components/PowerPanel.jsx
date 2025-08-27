@@ -1,10 +1,34 @@
+import { createSignal, createEffect } from 'solid-js';
 import styles from './PowerPanel.module.css';
 import commonStyles from './shared/common.module.css';
 import { usePowerStatus } from '../hooks/useTelemetryState';
 import ValueDisplay from './shared/ValueDisplay';
+import Plot from './Plot';
 
 function PowerPanel({ className }) {
   const powerData = usePowerStatus();
+  const [voltageePlotRef, setVoltagePlotRef] = createSignal(null);
+  const [currentPlotRef, setCurrentPlotRef] = createSignal(null);
+  const [lastProcessedData, setLastProcessedData] = createSignal(null);
+
+  // Helper function to check if power data has meaningfully changed
+  const hasDataChanged = (newData, lastData) => {
+    if (!lastData || !newData) return true;
+
+    // Compare key power values to detect meaningful changes
+    const voltageChanged = newData.batteryVoltage !== lastData.batteryVoltage;
+    const railsChanged = (
+      newData.rails?.V_Rail_12V !== lastData.rails?.V_Rail_12V ||
+      newData.rails?.V_Rail_5V !== lastData.rails?.V_Rail_5V ||
+      newData.rails?.V_Rail_3V3 !== lastData.rails?.V_Rail_3V3 ||
+      newData.rails?.I_Battery !== lastData.rails?.I_Battery ||
+      newData.rails?.I_Rail_12V !== lastData.rails?.I_Rail_12V ||
+      newData.rails?.I_Rail_5V !== lastData.rails?.I_Rail_5V ||
+      newData.rails?.I_Rail_3V3 !== lastData.rails?.I_Rail_3V3
+    );
+
+    return voltageChanged || railsChanged;
+  };
 
   // Helper function to format voltage values (convert from mV to V)
   const formatVoltage = (voltage) => {
@@ -44,6 +68,105 @@ function PowerPanel({ className }) {
 
     return data.rails[failedKey] || !data.rails[inRangeKey];
   };
+
+  // Voltage plot configuration
+  const voltageSeries = [
+    {}, // Time axis
+    { label: "VBat", stroke: "#00bfff", width: 1 },
+    { label: "+12V", stroke: "#ffa500", width: 1 },
+    { label: "+5V", stroke: "#9370db", width: 1 },
+    { label: "+3V3", stroke: "#20b2aa", width: 1 }
+  ];
+
+  const voltageAxes = [
+    {
+      show: true, // Show entire x-axis
+      stroke: 'transparent',
+      grid: { show: true },
+      ticks: { show: true },
+      size: 0
+    },
+    {
+      show: true, // Ensure y-axis is visible
+      values: (_, vals) => vals.map(v => Math.round(v) + "V"),
+      stroke: "#ffffff",
+      grid: { show: true, stroke: "#444444" },
+      ticks: { show: true, stroke: "#ffffff" },
+      size: 60,
+      gap: 8,
+      labelSize: 12,
+      font: "12px system-ui"
+    }
+  ];
+
+  // Current plot configuration
+  const currentSeries = [
+    {}, // Time axis
+    { label: "VBat", stroke: "#00bfff", width: 1, dash: [5, 5] },
+    { label: "+12V", stroke: "#ffa500", width: 1, dash: [5, 5] },
+    { label: "+5V", stroke: "#9370db", width: 1, dash: [5, 5] },
+    { label: "+3V3", stroke: "#20b2aa", width: 1, dash: [5, 5] }
+  ];
+
+  const currentAxes = [
+    {
+      show: true, // Show entire x-axis
+      stroke: "transparent",
+      grid: { show: true },
+      ticks: { show: true },
+      size: 0
+    },
+    {
+      show: true, // Ensure y-axis is visible
+      values: (_, vals) => vals.map(v => Math.round(v) + "A"),
+      stroke: "#ffffff",
+      grid: { show: true, stroke: "#444444" },
+      ticks: { show: true, stroke: "#ffffff" },
+      size: 60,
+      gap: 8,
+      labelSize: 12,
+      font: "12px system-ui"
+    }
+  ];
+
+  // Real-time data updates with deduplication
+  createEffect(() => {
+    const data = powerData();
+    const voltageRef = voltageePlotRef();
+    const currentRef = currentPlotRef();
+    const lastData = lastProcessedData();
+
+    // Only process data if it has meaningfully changed
+    if (data && hasDataChanged(data, lastData)) {
+      const timestamp = Date.now() / 1000;
+
+      // Update voltage plot
+      if (voltageRef && voltageRef.addDataPoint) {
+        voltageRef.addDataPoint(
+          timestamp,
+          data.batteryVoltage ? data.batteryVoltage / 1000 : null,
+          data.rails?.V_Rail_12V ? data.rails.V_Rail_12V / 1000 : null,
+          data.rails?.V_Rail_5V ? data.rails.V_Rail_5V / 1000 : null,
+          data.rails?.V_Rail_3V3 ? data.rails.V_Rail_3V3 / 1000 : null
+        );
+      }
+
+      // Update current plot
+      if (currentRef && currentRef.addDataPoint) {
+        currentRef.addDataPoint(
+          timestamp,
+          data.rails?.I_Battery ? data.rails.I_Battery / 1000 : null,
+          data.rails?.I_Rail_12V ? data.rails.I_Rail_12V / 1000 : null,
+          data.rails?.I_Rail_5V ? data.rails.I_Rail_5V / 1000 : null,
+          data.rails?.I_Rail_3V3 ? data.rails.I_Rail_3V3 / 1000 : null
+        );
+      }
+
+      // Update the last processed data to prevent future duplicates
+      setLastProcessedData(data);
+    }
+  });
+
   return (
     <div class={`${commonStyles.componentPanel} ${className || ''}`}>
       <div class={commonStyles.componentHeader}>
@@ -69,7 +192,7 @@ function PowerPanel({ className }) {
       <div class={styles.contentSection}>
         <div class={styles.diagramSection}>
           <div class={styles.diagramContainer}>
-            <svg class={styles.powerDiagram} viewBox="30 40 340 210" preserveAspectRatio="xMidYMid meet">
+            <svg class={styles.powerDiagram} viewBox="30 20 340 230" preserveAspectRatio="xMidYMid meet">
             {/* Arrow markers for power flow direction */}
             <defs>
               <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
@@ -214,14 +337,32 @@ function PowerPanel({ className }) {
         </div>
 
         <div class={styles.plotSection}>
-        <div class={styles.plotPlaceholder}>
-          <h4>Dual-Axis Plot</h4>
-          <p>Voltage (V) & Current (A)</p>
-          <p>All Rail Voltages and Currents</p>
-          <p style="margin-top: 1rem; font-size: 0.8rem;">
-            📊 Plot implementation coming soon...
-          </p>
-        </div>
+          <div class={styles.voltageplot}>
+            <Plot
+              multiSeries={true}
+              series={voltageSeries}
+              axes={voltageAxes}
+              scales={{
+                x: { time: true },
+                y: { auto: false, min: 0, max: 17 }
+              }}
+              maxPoints={30}
+              ref={setVoltagePlotRef}
+            />
+          </div>
+          <div class={styles.currentPlot}>
+            <Plot
+              multiSeries={true}
+              series={currentSeries}
+              axes={currentAxes}
+              scales={{
+                x: { time: true },
+                y: { auto: false, min: 0, max: 4 }
+              }}
+              maxPoints={30}
+              ref={setCurrentPlotRef}
+            />
+          </div>
         </div>
       </div>
     </div>

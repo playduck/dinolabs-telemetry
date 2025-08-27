@@ -14,7 +14,7 @@
             "browsePathTemplate": "/Objects/{namespaceIndex}:payload/{namespaceIndex}:dinolabs.{namespaceIndex}:data"
         },
         "dummy": {
-            "interval": 250,
+            "interval": 200,
             "jitter": 0.1
         }
     },

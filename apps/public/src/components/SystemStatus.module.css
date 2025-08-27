@@ -12,6 +12,24 @@
   transition: all 0.3s ease;
 }
 
+.systemCardError {
+  border-color: var(--color-warrRed)!important; /* overrules :hover */
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+  animation: pulse-red 400ms infinite;
+}
+
+@keyframes pulse-red {
+  0% {
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 0, 0, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+  }
+}
+
 .systemCard:hover {
   border-color: var(--color-primary);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

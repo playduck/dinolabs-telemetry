@@ -4,14 +4,14 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2em;
+  padding: 0 1em;
   background-color: var(--color-warrBackground);
   position: sticky;
   left: 0;
   right: 0;
   top: 0;
   z-index: 99999;
-  font-size: 1rem;
+  font-size: 0.8rem;
   color: var(--color-text);
 }
 
@@ -84,7 +84,7 @@ h1 {
     transparent 6px,
     transparent 12px
   );
-  background-size: 17px 17px;
+  background-size: 16.97px 16.97px;
   margin: 0 1em;
   align-self: center;
   opacity: 0.4;
@@ -96,10 +96,56 @@ h1 {
     background-position: 0 0;
   }
   100% {
-    background-position: 17px 17px;
+    background-position: 16.97px 16.97px;
   }
 }
 
+.spacerOffline {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--color-warrRed),
+    var(--color-warrRed) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  background-size: 16.97px 16.97px;
+  opacity: 1;
+  animation: spacerScrollOffline 2s linear infinite;
+  display: flex;
+  justify-content: center;
+}
+
+@keyframes spacerScrollOffline {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: -16.97px -16.97px;
+  }
+}
+
+.spacerOffline::before {
+  content: '';
+  transform: skew(-45deg);
+  align-self: center;
+  background-color: var(--color-warrRed);
+  min-width: 15%;
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  height: 2em;
+}
+
+.spacerOffline::after {
+  align-self: center;
+  content: "OFFLINE";
+  color: var(--color-background);
+  font-size: 1.5em;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+  z-index: 9999;
+}
 
 .info {
   font-size: 1.0em !important;
@@ -191,7 +237,7 @@ h1 {
 /* Header-specific info display elements */
 .infoValue {
   font-family: monospace;
-  font-size: 1.0rem;
+  font-size: 1.0em;
   font-weight: 600;
   color: var(--color-text);
   position: relative;
