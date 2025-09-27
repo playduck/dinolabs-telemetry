@@ -22,7 +22,6 @@ let frontendWatcher = null;
 // Test message to verify logging is working
 const testMessage = `Hello world, GSE server started at ${new Date().toISOString()}\n`;
 stream.write(testMessage);
-console.log(TAG, "Test message written to log file:", testMessage.trim());
 
 // Logging middleware
 app.use(morgan("dev"));
@@ -55,16 +54,34 @@ const parser = ParserFactory.create(
 console.log(TAG, `Using data source: ${config.active_data_source}, parser: ${config.active_parser}`);
 
 // Set up message handling
-dataSource.on("message", (buffer) => {
-  // console.log(TAG, "Received message from data source, buffer length:", buffer.length);
-  const msg = parser.parseMessage(buffer);
-  if(msg != undefined) {
-    // console.log(TAG, "Parsed message successfully:", msg);
-    const msg_json = JSON.stringify(msg);
-    io.emit("message", msg_json);
-    tcpp.post(msg_json);
-    // stream.write(msg_json + ",\n");
-    // console.log(TAG, "Message logged to file and forwarded");
+dataSource.on("data", (buffer) => {
+  // Log raw bytes with timestamp - much more compact than JSON
+  const timestamp = new Date().toISOString();
+  const hexBytes = Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join(' ');
+  stream.write(`${timestamp} RAW[${buffer.length}]: ${hexBytes}\n`);
+
+  const parsed = parser.parseMessage(buffer);
+  if(parsed != undefined) {
+    // Handle both single messages and arrays of messages
+    const messages = Array.isArray(parsed) ? parsed : [parsed];
+
+    for (const msg of messages) {
+      // console.log(TAG, `Parsed ${msg.typeName} message successfully:`, {
+      //   type: msg.typeName,
+      //   timestamp: new Date(msg.timestamp).toISOString(),
+      //   isValid: msg.isValid
+      // });
+
+      const msg_json = JSON.stringify(msg);
+
+      // Send via websocket
+      io.emit("message", msg_json);
+
+      // Forward to inet server
+      tcpp.post(msg_json);
+    }
+
+    // console.log(TAG, `Processed ${messages.length} message(s) from buffer`);
   } else {
     // console.log(TAG, "Failed to parse message, sending bad-message event");
     io.emit('bad-message');
@@ -98,6 +115,18 @@ io.listen(server);
 // Handle graceful shutdown
 process.on('SIGINT', () => {
   console.log(TAG, 'Shutting down GSE server...');
+
+  // Flush any remaining batched messages
+  tcpp.shutdown();
+
+  // Stop data source and parser
+  if (dataSource && typeof dataSource.stop === 'function') {
+    dataSource.stop();
+  }
+  if (parser && typeof parser.stop === 'function') {
+    parser.stop();
+  }
+
   if (frontendWatcher) {
     console.log(TAG, 'Terminating frontend watcher...');
     frontendWatcher.kill();
@@ -107,6 +136,18 @@ process.on('SIGINT', () => {
 
 process.on('SIGTERM', () => {
   console.log(TAG, 'Shutting down GSE server...');
+
+  // Flush any remaining batched messages
+  tcpp.shutdown();
+
+  // Stop data source and parser
+  if (dataSource && typeof dataSource.stop === 'function') {
+    dataSource.stop();
+  }
+  if (parser && typeof parser.stop === 'function') {
+    parser.stop();
+  }
+
   if (frontendWatcher) {
     console.log(TAG, 'Terminating frontend watcher...');
     frontendWatcher.kill();

@@ -1,11 +1,13 @@
-const net = require('net');
 const EventEmitter = require('node:events');
 
-class TcpDataSource extends EventEmitter {
+// Optional serialport dependency - install with: npm install serialport
+const SerialPort = require('serialport').SerialPort;
+
+class SerialDataSource extends EventEmitter {
     constructor(config) {
         super();
         this.config = config;
-        this.TAG = "TCP_SOURCE";
+        this.TAG = "SERIAL_SOURCE";
         this.reconnectInterval = this.config.reconnectInterval || 5000;
         this.retryCount = 0;
         this.isConnected = false;
@@ -28,22 +30,34 @@ class TcpDataSource extends EventEmitter {
             totalUptime: 0
         };
 
-        this.setupTcp();
+        this.setupSerial();
         this.startStatsLogging();
     }
 
-    setupTcp() {
-        console.log(this.TAG, `Setting up TCP connection to ${this.config.host}:${this.config.port}`);
+    setupSerial() {
+        if (!SerialPort) {
+            throw new Error('SerialPort not available. Install with: npm install serialport');
+        }
 
-        this.client = new net.Socket();
-        this.client.on('connect', this.onConnect.bind(this));
-        this.client.on('data', this.onData.bind(this));
-        this.client.on('error', this.onError.bind(this));
-        this.client.on('close', this.onClose.bind(this));
+        console.log(this.TAG, `Setting up serial connection to ${this.config.port} at ${this.config.baudRate || 115200} baud`);
+
+        this.serialPort = new SerialPort({
+            path: this.config.port,
+            baudRate: this.config.baudRate || 115200,
+            dataBits: this.config.dataBits || 8,
+            parity: this.config.parity || 'none',
+            stopBits: this.config.stopBits || 1,
+            autoOpen: false
+        });
+
+        this.serialPort.on('open', this.onConnect.bind(this));
+        this.serialPort.on('data', this.onData.bind(this));
+        this.serialPort.on('error', this.onError.bind(this));
+        this.serialPort.on('close', this.onClose.bind(this));
     }
 
     onConnect() {
-        console.log(this.TAG, 'Connected to TCP source');
+        console.log(this.TAG, 'Connected to serial source');
         this.isConnected = true;
         this.isConnecting = false;
         this.isReconnectScheduled = false;
@@ -69,19 +83,19 @@ class TcpDataSource extends EventEmitter {
     }
 
     onError(err) {
-        console.error(this.TAG, 'TCP error occurred:', err.message);
+        console.error(this.TAG, 'Serial error occurred:', err.message);
         this.isConnected = false;
         this.isConnecting = false;
 
-        if (this.client) {
-            this.client.destroy();
+        if (this.serialPort) {
+            this.serialPort.close();
         }
 
         this.scheduleReconnect();
     }
 
     onClose() {
-        console.log(this.TAG, 'TCP connection closed');
+        console.log(this.TAG, 'Serial connection closed');
 
         // Update uptime statistics
         if (this.stats.connectTime) {
@@ -130,22 +144,28 @@ class TcpDataSource extends EventEmitter {
 
         console.log(this.TAG, `Attempting connection (attempt ${this.retryCount})...`);
         this.isConnecting = true;
-        this.setupTcp();
+        this.setupSerial();
 
         try {
-            this.client.connect(this.config.port, this.config.host);
+            this.serialPort.open((err) => {
+                if (err) {
+                    console.error(this.TAG, 'Failed to open serial port:', err.message);
+                    this.isConnecting = false;
+                    this.scheduleReconnect();
+                }
+            });
         } catch (err) {
-            console.error(this.TAG, 'Failed to initiate connection:', err.message);
+            console.error(this.TAG, 'Failed to initiate serial connection:', err.message);
             this.isConnecting = false;
             this.scheduleReconnect();
         }
     }
 
     start() {
-        console.log(this.TAG, 'Starting TCP connection...');
+        console.log(this.TAG, 'Starting serial connection...');
 
         if (this.isConnected || this.isConnecting) {
-            console.log(this.TAG, 'TCP connection already established or connecting');
+            console.log(this.TAG, 'Serial connection already established or connecting');
             return;
         }
 
@@ -154,7 +174,7 @@ class TcpDataSource extends EventEmitter {
     }
 
     stop() {
-        console.log(this.TAG, 'Stopping TCP connection...');
+        console.log(this.TAG, 'Stopping serial connection...');
 
         this.config.autoReconnect = false;
 
@@ -176,8 +196,8 @@ class TcpDataSource extends EventEmitter {
 
         this.logFinalStatistics();
 
-        if (this.client) {
-            this.client.destroy();
+        if (this.serialPort && this.serialPort.isOpen) {
+            this.serialPort.close();
         }
 
         this.isConnected = false;
@@ -195,7 +215,7 @@ class TcpDataSource extends EventEmitter {
         }
 
         try {
-            this.client.write(data);
+            this.serialPort.write(data);
             return true;
         } catch (error) {
             console.error(this.TAG, 'Failed to send data:', error.message);
@@ -290,10 +310,10 @@ class TcpDataSource extends EventEmitter {
 
         return {
             connected: this.isConnected,
-            type: 'tcp',
+            type: 'serial',
             retryCount: this.retryCount,
             bufferSize: this.buffer.length,
-            config: { host: this.config.host, port: this.config.port },
+            config: { port: this.config.port, baudRate: this.config.baudRate },
             stats: {
                 ...this.stats,
                 currentUptime,
@@ -303,4 +323,4 @@ class TcpDataSource extends EventEmitter {
     }
 }
 
-module.exports = TcpDataSource;
+module.exports = SerialDataSource;

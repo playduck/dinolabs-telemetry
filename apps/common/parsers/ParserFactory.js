@@ -7,6 +7,9 @@ class ParserFactory {
       case 'json':
         const JsonParser = require('./JsonParser');
         return new JsonParser(config);
+      case 'tlm':
+        const TlmParser = require('./TlmParser');
+        return new TlmParser(config);
       default:
         throw new Error(`Unsupported parser type: ${type}`);
     }

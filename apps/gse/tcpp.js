@@ -12,6 +12,12 @@ class PostApi {
     this.auth = secrets.tcp_api.auth;
     this.url = `${config.tcp_api.protocol}://${config.tcp_api.host}`;
     this.connected = false;
+
+    // Batching configuration
+    this.batchSize = 100;  // Send after X messages
+    this.batchTimeout = 2000;  // Send after Y milliseconds
+    this.messageBatch = [];
+    this.batchTimer = null;
   }
 
   post(data, callback) {
@@ -19,13 +25,59 @@ class PostApi {
         return;
     }
 
+    // Add to batch instead of posting immediately
+    this.addToBatch(data, callback);
+  }
+
+  addToBatch(data, callback) {
+    this.messageBatch.push({ data, callback });
+
+    // Set timer if this is the first message in the batch
+    if (this.messageBatch.length === 1) {
+      this.batchTimer = setTimeout(() => {
+        this.flushBatch();
+      }, this.batchTimeout);
+    }
+
+    // Send immediately if batch size reached
+    if (this.messageBatch.length >= this.batchSize) {
+      this.flushBatch();
+    }
+  }
+
+  flushBatch() {
+    if (this.messageBatch.length === 0) {
+      return;
+    }
+
+    // Clear the timeout
+    if (this.batchTimer) {
+      clearTimeout(this.batchTimer);
+      this.batchTimer = null;
+    }
+
+    // Prepare batch data
+    const currentBatch = this.messageBatch;
+    this.messageBatch = [];
+
+    // Send as array of messages
+    const batchData = currentBatch.map(item => item.data);
+    const batchCallbacks = currentBatch.map(item => item.callback);
+
+    console.log(TAG, `Sending batch of ${batchData.length} messages`);
+    this.sendBatch(batchData, batchCallbacks);
+  }
+
+  sendBatch(batchData, batchCallbacks) {
+    const data = JSON.stringify(batchData);
+
     const options = {
       host: config.tcp_api.host,
       port: 443,
       path: "/" + config.tcp_api.endpoint_url,
       method: 'POST',
       headers: {
-        'Content-Type': data instanceof Buffer ? 'application/octet-stream' : 'application/json',
+        'Content-Type': 'application/json',
         'Content-Length': data.length
       }
     };
@@ -41,15 +93,19 @@ class PostApi {
 
     req.on('error', (err) => {
       // console.error(TAG, 'Error occurred:', err);
-      if(typeof(callback) === "function") {
-        callback(err);
-      }
+      batchCallbacks.forEach(callback => {
+        if(typeof(callback) === "function") {
+          callback(err);
+        }
+      });
     });
 
     req.on('close', () => {
-      if(typeof(callback) === "function") {
-        callback();
-      }
+      batchCallbacks.forEach(callback => {
+        if(typeof(callback) === "function") {
+          callback();
+        }
+      });
     });
 
     req.on('response', (res) => {
@@ -62,9 +118,11 @@ class PostApi {
         if(res.statusCode != 200) {
           // console.log(TAG, 'Response body:', response);
         }
-        if(typeof(callback) === "function") {
-          callback(null, response);
-        }
+        batchCallbacks.forEach(callback => {
+          if(typeof(callback) === "function") {
+            callback(null, response);
+          }
+        });
       });
     });
     req.end(data);
@@ -89,6 +147,12 @@ class PostApi {
   onError(err) {
     // console.error(TAG, 'Error occurred:', err);
     this.reconnect();
+    this.connected = false;
+  }
+
+  shutdown() {
+    // Flush any remaining messages before shutdown
+    this.flushBatch();
     this.connected = false;
   }
 }

@@ -42,20 +42,31 @@ app.post("/" + config.tcp_api.endpoint_url, authMiddleware, (req, res) => {
     const msg = pb.parseMessage(req.body);
     // Send the parsed message as JSON via Websocket
     if(msg != undefined)  {
-      io.emit('message', JSON.stringify(msg));
-      stream.write(msg + ",\n");
+      const msg_json = JSON.stringify(msg);
+      io.emit('message', msg_json);
+      // Log compact: timestamp + message type only
+      const timestamp = new Date().toISOString();
+      stream.write(`${timestamp} MSG: ${req.body.typeName || 'unknown'}\n`);
+      console.log(TAG, "Binary message received, parsed and forwarded via websocket");
       res.status(200).send(`Binary Message received and sent via Websocket`);
     } else  {
       io.emit('bad-message');
-      res.status(400).seend(`Could not parse binary protobuf: ${msg}`)
+      console.error(TAG, "Failed to parse binary protobuf message");
+      res.status(400).send(`Could not parse binary protobuf: ${msg}`)
     }
   }
   else if (typeof req.body === 'object') {
-    // Send the JSON object via Websocket
-    io.emit('message', JSON.stringify(req.body));
+    // Send the JSON object via Websocket (TLM messages come this way from GSE)
+    const msg_json = JSON.stringify(req.body);
+    io.emit('message', msg_json);
+    // Log compact: timestamp + message type only
+    const timestamp = new Date().toISOString();
+    stream.write(`${timestamp} MSG: ${req.body.typeName || 'unknown'}\n`);
+    console.log(TAG, "JSON message received and forwarded via websocket:", req.body.typeName || 'unknown');
     res.status(200).send('JSON Message received and sent via Websocket');
   }
   else {
+    console.error(TAG, "Invalid request body type:", typeof req.body);
     res.status(400).send(`Invalid request body type: ${typeof req.body}`);
   }
 });

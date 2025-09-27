@@ -1,32 +1,53 @@
 {
-    "active_data_source": "dummy",
-    "active_parser": "json",
-
+    "active_data_source": "tcp",
+    "active_parser": "tlm",
     "data_sources": {
         "tcp": {
             "host": "localhost",
-            "port": 8081
+            "port": 8082,
+            "autoReconnect": true,
+            "reconnectInterval": 5000,
+            "statsEnabled": false,
+            "statsInterval": 10000
         },
-        "opcua": {
-            "endpoint_url": "opc.tcp://0.0.0.0:4840/warr/telemetry/server/",
-            "namespace_uri": "http://rocketry.warr.com/opcua/server",
-            "requestedInterval": 25,
-            "browsePathTemplate": "/Objects/{namespaceIndex}:payload/{namespaceIndex}:dinolabs.{namespaceIndex}:data"
-        },
-        "dummy": {
-            "interval": 200,
-            "jitter": 0.1
+        "serial": {
+            "port": "/dev/cu.usbserial-0001",
+            "baudRate": 115200,
+            "dataBits": 8,
+            "parity": "none",
+            "stopBits": 1,
+            "autoReconnect": true,
+            "reconnectInterval": 5000,
+            "statsEnabled": false,
+            "statsInterval": 10000
         }
     },
-
     "parsers": {
         "protobuf": {
             "definition": "./proto/payload.proto",
             "cobs_length": 2048
         },
-        "json": {}
+        "json": {},
+        "tlm": {
+            "validate_parity": true,
+            "statsEnabled": true,
+            "statsInterval": 10000,
+            "supported_message_types": {
+                "0x51": "TEC",
+                "0x52": "POWER",
+                "0x53": "SYSTEM",
+                "0x54": "EXP1",
+                "0x55": "EXP2",
+                "0x56": "EXPIMU"
+            }
+        }
     },
-
+    "logging": {
+        "enabled": true,
+        "logLevel": "info",
+        "logToFile": true,
+        "logToConsole": true
+    },
     "local_server": {
         "port": 8083
     },
