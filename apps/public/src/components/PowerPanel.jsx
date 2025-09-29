@@ -220,19 +220,6 @@ function PowerPanel({ className }) {
       <div class={commonStyles.componentHeader}>
         <h3>Power Subsystem</h3>
         <div class={commonStyles.headerStats}>
-          <div class={`${commonStyles.statBox} ${styles.batteryVoltage}`}>
-            <ValueDisplay
-              label="Battery"
-              value={() => {
-                const voltage = powerData()?.batteryVoltage;
-                if (!voltage) return null;
-                // Smart unit detection: if voltage > 50, assume millivolts, else volts
-                return voltage > 50 ? (voltage / 1000.0).toFixed(2) : voltage.toFixed(2);
-              }}
-              unit="V"
-              className={`${commonStyles.smallText} ${commonStyles.monospaceText}`}
-            />
-          </div>
           <div class={`${commonStyles.statBox} ${styles.chargeSource}`}>
             <ValueDisplay
               label="Source"
@@ -245,7 +232,7 @@ function PowerPanel({ className }) {
       <div class={styles.contentSection}>
         <div class={styles.diagramSection}>
           <div class={styles.diagramContainer}>
-            <svg class={styles.powerDiagram} viewBox="30 40 340 210" preserveAspectRatio="xMidYMid meet">
+            <svg class={styles.powerDiagram} viewBox="25 40 345 210" preserveAspectRatio="xMidYMid meet">
             {/* Arrow markers for power flow direction */}
             <defs>
               <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
@@ -393,6 +380,7 @@ function PowerPanel({ className }) {
           </div>
         </div>
 
+{/*
         <div class={styles.plotSection}>
           <div class={styles.voltageplot}>
             <Plot
@@ -421,6 +409,7 @@ function PowerPanel({ className }) {
             />
           </div>
         </div>
+         */}
       </div>
     </div>
   );

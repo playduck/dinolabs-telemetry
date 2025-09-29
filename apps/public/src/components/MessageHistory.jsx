@@ -5,102 +5,152 @@ import commonStyles from './shared/common.module.css';
 import ValueDisplay from './shared/ValueDisplay';
 
 function MessageHistory({ className = '' }) {
-  const [messages, setMessages] = createSignal([]);
-  const [avgDeltaT, setAvgDeltaT] = createSignal(null);
+  // Data rate bucketing (1-second buckets)
+  const [dataBuckets, setDataBuckets] = createSignal([]);
+  const [currentDataRate, setCurrentDataRate] = createSignal(0);
+  const [connectionHealth, setConnectionHealth] = createSignal('nominal'); // nominal, degraded, stopped
+  const [messageTypeBreakdown, setMessageTypeBreakdown] = createSignal({});
+
+  // Event logging
+  const [events, setEvents] = createSignal([]);
+
+  // Legacy timing info
   const [lastMessageTime, setLastMessageTime] = createSignal(null);
   const [currentTime, setCurrentTime] = createSignal(Date.now());
-  const [showBackToTop, setShowBackToTop] = createSignal(false);
-  const maxHistorySize = 100; // Keep only last 100 messages
-  const lowpassAlpha = 0.1; // First-order low-pass filter coefficient
+  const [totalMessages, setTotalMessages] = createSignal(0);
+  const [sessionStartTime] = createSignal(Date.now());
 
-  let internalLastMessageTime = null;
-  let currentAvgDeltaT = null;
+  // Configuration
+  const bucketSizeMs = 1000; // 1-second buckets
+  const maxHistoryBuckets = 120; // Keep 2 minutes of history
+  const maxEvents = 50; // Keep last 50 significant events
+  const healthyThresholdMin = 30; // msgs/sec
+  const degradedThresholdMin = 10; // msgs/sec
+
+  // Internal state
   let timeUpdateInterval;
-  let messageIdCounter = 0;
-  let messageListRef;
-  let preserveScrollPosition = false;
-  let scrollTopBefore = 0;
-  let wasAtCapacity = false;
-  let isScrollingToTop = false;
+  let currentBucketStart = null;
+  let currentBucketData = { count: 0, types: {} };
+  let eventIdCounter = 0;
+  let lastHealthStatus = 'nominal';
+  let eventListRef;
 
-  const handleScroll = () => {
-    if (messageListRef) {
-      const isAtTop = messageListRef.scrollTop < 50;
-      setShowBackToTop(!isAtTop);
-    }
+  const getCurrentBucketTimestamp = () => {
+    const now = Date.now();
+    return Math.floor(now / bucketSizeMs) * bucketSizeMs;
   };
 
-  const scrollToTop = () => {
-    if (messageListRef) {
-      isScrollingToTop = true;
-      messageListRef.scrollTo({ top: 0, behavior: 'smooth' });
+  const addEvent = (type, message, data = null) => {
+    const newEvent = {
+      id: `event-${++eventIdCounter}`,
+      timestamp: Date.now(),
+      type: type,
+      message: message,
+      data: data
+    };
 
-      // Reset flag after scroll animation completes
-      setTimeout(() => {
-        isScrollingToTop = false;
-      }, 1000); // Generous timeout for smooth scroll animation
+    setEvents(prev => [newEvent, ...prev].slice(0, maxEvents));
+  };
+
+  const updateHealthStatus = (currentRate, timeSinceLastMessage) => {
+    let newHealth = 'stopped';
+
+    if (timeSinceLastMessage < 5000) { // Less than 5 seconds ago
+      if (currentRate >= healthyThresholdMin) {
+        newHealth = 'nominal';
+      } else if (currentRate >= degradedThresholdMin) {
+        newHealth = 'degraded';
+      } else {
+        newHealth = 'degraded';
+      }
     }
+
+    if (newHealth !== lastHealthStatus) {
+      addEvent('health-change', `Connection status changed to ${newHealth}`, { from: lastHealthStatus, to: newHealth });
+      lastHealthStatus = newHealth;
+    }
+
+    setConnectionHealth(newHealth);
   };
 
   const addMessage = (type, data = null) => {
     const now = Date.now();
-    const deltaTime = internalLastMessageTime ? now - internalLastMessageTime : 0;
+    const bucketTimestamp = getCurrentBucketTimestamp();
 
-    // Determine color class based on current average (fix it at message creation)
-    let deltaColorClass = 'default';
-    const currentAvg = avgDeltaT();
-    if (currentAvg !== null && deltaTime > 0) {
-      const tolerance = Math.max(5, currentAvg * 0.05); // Minimum 5ms tolerance or 5% of average
-
-      if (deltaTime > currentAvg + tolerance) {
-        deltaColorClass = 'above';
-      } else if (deltaTime < currentAvg - tolerance) {
-        deltaColorClass = 'below';
-      } else {
-        deltaColorClass = 'equal';
+    // Initialize bucket if needed
+    if (currentBucketStart !== bucketTimestamp) {
+      // Finalize previous bucket if exists
+      if (currentBucketStart !== null && currentBucketData.count > 0) {
+        finalizeBucket(currentBucketStart, currentBucketData);
       }
+
+      // Start new bucket
+      currentBucketStart = bucketTimestamp;
+      currentBucketData = { count: 0, types: {}, hasErrors: false };
     }
 
-    const newMessage = {
-      id: `msg-${++messageIdCounter}`,
-      timestamp: now,
-      type: type,
-      deltaTime: deltaTime,
-      deltaColorClass: deltaColorClass,
-      data: data
+    // Add to current bucket
+    currentBucketData.count++;
+    // Track errors
+    if (type === 'bad-message') {
+      currentBucketData.hasErrors = true;
+    } else {
+      // Don't track bad-message in the type breakdown
+      currentBucketData.types[type] = (currentBucketData.types[type] || 0) + 1;
+    }
+
+    // Update totals
+    setTotalMessages(prev => prev + 1);
+    setLastMessageTime(now);
+
+    // Update current data rate (messages in last second)
+    updateCurrentDataRate();
+  };
+
+  const finalizeBucket = (timestamp, bucketData) => {
+    const newBucket = {
+      timestamp: timestamp,
+      count: bucketData.count,
+      types: { ...bucketData.types },
+      rate: bucketData.count, // messages per second
+      hasErrors: bucketData.hasErrors || false
     };
 
-    setMessages(prev => {
-      const messageList = messageListRef;
-      const wasAtTop = !messageList || messageList.scrollTop < 10;
+    setDataBuckets(prev => {
+      const updated = [newBucket, ...prev].slice(0, maxHistoryBuckets);
 
-      // Store current scroll position and capacity status if user is not at top
-      // But don't preserve position if we're actively scrolling to top
-      if (!wasAtTop && messageList && !isScrollingToTop) {
-        preserveScrollPosition = true;
-        scrollTopBefore = messageList.scrollTop;
-        wasAtCapacity = prev.length >= maxHistorySize;
-      } else {
-        preserveScrollPosition = false;
+      // Check for significant rate changes
+      if (prev.length > 0) {
+        const prevRate = prev[0].rate;
+        const rateChange = Math.abs(newBucket.rate - prevRate);
+
+        if (rateChange > 20) { // Significant change threshold
+          addEvent('rate-change', `Data rate changed from ${prevRate} to ${newBucket.rate} msgs/sec`, {
+            from: prevRate,
+            to: newBucket.rate,
+            change: newBucket.rate - prevRate
+          });
+        }
       }
 
-      const updated = [newMessage, ...prev];
-      return updated.slice(0, maxHistorySize);
+      return updated;
     });
 
-    // Update average deltaT using first-order low-pass filter
-    if (deltaTime > 0) { // Only update for non-zero deltas
-      if (currentAvgDeltaT === null) {
-        currentAvgDeltaT = deltaTime; // Initialize with first delta
-      } else {
-        // Low-pass filter: y[n] = α * x[n] + (1 - α) * y[n-1]
-        currentAvgDeltaT = lowpassAlpha * deltaTime + (1 - lowpassAlpha) * currentAvgDeltaT;
-      }
-      setAvgDeltaT(currentAvgDeltaT);
-    }
+    // Update message type breakdown for current window
+    setMessageTypeBreakdown(bucketData.types);
+  };
 
-    internalLastMessageTime = now;
-    setLastMessageTime(now);
+  const updateCurrentDataRate = () => {
+    const buckets = dataBuckets();
+    const now = Date.now();
+
+    // Calculate rate from recent buckets (last 3 seconds)
+    const recentBuckets = buckets.filter(bucket => now - bucket.timestamp < 3000);
+    const totalMessages = recentBuckets.reduce((sum, bucket) => sum + bucket.count, 0);
+    const timeSpanSeconds = Math.max(1, recentBuckets.length);
+
+    const rate = Math.round(totalMessages / timeSpanSeconds);
+    setCurrentDataRate(rate);
   };
 
   const formatTimestamp = (timestamp) => {
@@ -109,74 +159,52 @@ function MessageHistory({ className = '' }) {
       hour12: false,
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit',
-      fractionalSecondDigits: 3
+      second: '2-digit'
     });
   };
 
-  const formatDeltaTime = (deltaTime) => {
-    if (deltaTime === 0) return '---';
+  const formatDataRate = (rate) => {
+    if (rate === 0) return '0';
+    if (rate < 1000) return rate.toString();
+    return `${(rate / 1000).toFixed(1)}k`;
+  };
 
-    if (deltaTime < 1000) {
-      return `${deltaTime}ms`;
-    } else if (deltaTime < 60000) {
-      return `${(deltaTime / 1000).toFixed(1)}s`;
-    } else {
-      return `${(deltaTime / 60000).toFixed(1)}m`;
+  const getHealthStatusColor = (health) => {
+    switch (health) {
+      case 'healthy': return 'var(--color-warrGreen)';
+      case 'degraded': return 'var(--color-warrYellow)';
+      case 'stopped': return 'var(--color-warrRed)';
+      default: return 'var(--color-textSecondary)';
     }
   };
 
-  const getAvgDeltaTValue = () => {
-    const avg = avgDeltaT();
-    if (avg === null) return null;
-
-    if (avg < 1000) {
-      return Math.round(avg);
-    } else if (avg < 60000) {
-      return (avg / 1000).toFixed(1);
-    } else {
-      return (avg / 60000).toFixed(1);
-    }
-  };
-
-  const getAvgDeltaTUnit = () => {
-    const avg = avgDeltaT();
-    if (avg === null) return '';
-
-    if (avg < 1000) {
-      return 'ms';
-    } else if (avg < 60000) {
-      return 's';
-    } else {
-      return 'm';
-    }
+  const getUptimeDisplay = () => {
+    const uptime = currentTime() - sessionStartTime();
+    const minutes = Math.floor(uptime / 60000);
+    const seconds = Math.floor((uptime % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const formatLastMessage = () => {
     const lastMsg = lastMessageTime();
 
-    // If no message has been received yet
     if (lastMsg === null) {
       return 'No MSG';
     }
 
     const timeSinceLastMsg = currentTime() - lastMsg;
 
-    // Ensure we never show negative values
     if (timeSinceLastMsg < 0) {
       return '0.0';
     }
 
     if (timeSinceLastMsg < 1000) {
-      // Less than 1 second - show as 0.x seconds
       const seconds = (timeSinceLastMsg / 1000).toFixed(1);
       return seconds.padStart(3, ' ');
     } else if (timeSinceLastMsg < 60000) {
-      // Less than 1 minute - show in seconds with 1 decimal
       const seconds = (timeSinceLastMsg / 1000).toFixed(1);
       return seconds.padStart(3, ' ');
     } else {
-      // 1 minute or more - show in minutes with 1 decimal
       const minutes = (timeSinceLastMsg / 60000).toFixed(1);
       return minutes.padStart(3, ' ');
     }
@@ -198,57 +226,62 @@ function MessageHistory({ className = '' }) {
     }
   };
 
-  const getMessageTypeClass = (type) => {
+
+  const getEventTypeClass = (type) => {
     switch (type) {
-      case 'bad-message':
-        return `${styles.messageType} ${styles.messageTypeBad}`;
-      // Legacy format
-      case 'SystemStatus':
-        return `${styles.messageType} ${styles.messageTypeSystem}`;
-      case 'PowerState':
-        return `${styles.messageType} ${styles.messageTypePower}`;
-      case 'CoolingState':
-        return `${styles.messageType} ${styles.messageTypeTemperature}`;
-      case 'ExperiementState':
-        return `${styles.messageType} ${styles.messageTypeExperiment}`;
-      // New TLM format
-      case 'TEC':
-        return `${styles.messageType} ${styles.messageTypeTemperature}`;
-      case 'POWER':
-        return `${styles.messageType} ${styles.messageTypePower}`;
-      case 'SYSTEM':
-        return `${styles.messageType} ${styles.messageTypeSystem}`;
-      case 'EXP1':
-      case 'EXP2':
-      case 'EXPIMU':
-        return `${styles.messageType} ${styles.messageTypeExperiment}`;
-      case 'FCS':
-        return `${styles.messageType} ${styles.messageTypeSystem}`;
+      case 'health-change':
+        return `${styles.eventType} ${styles.eventTypeHealth}`;
+      case 'rate-change':
+        return `${styles.eventType} ${styles.eventTypeRate}`;
+      case 'connection':
+        return `${styles.eventType} ${styles.eventTypeConnection}`;
+      case 'error':
+        return `${styles.eventType} ${styles.eventTypeError}`;
       default:
-        return `${styles.messageType} ${styles.messageTypeDefault}`;
+        return `${styles.eventType} ${styles.eventTypeDefault}`;
     }
   };
 
-  const getDeltaColorClass = (message) => {
-    const baseClass = `${styles.messageDelta} ${commonStyles.smallText} ${commonStyles.monospaceText}`;
+  const getMiniChartData = () => {
+    const buckets = dataBuckets().slice(0, 60); // Last 60 seconds
+    return buckets.reverse(); // Chronological order for chart
+  };
 
-    switch (message.deltaColorClass) {
-      case 'above':
-        return `${baseClass} ${styles.deltaAboveAvg}`;
-      case 'below':
-        return `${baseClass} ${styles.deltaBelowAvg}`;
-      case 'equal':
-        return `${baseClass} ${styles.deltaEqualAvg}`;
-      default:
-        return baseClass;
-    }
+  const getMaxRate = () => {
+    const buckets = dataBuckets();
+    if (buckets.length === 0) return 100;
+
+    const actualMax = Math.max(...buckets.map(b => b.rate));
+    // Use actual max with some headroom (20% padding) but minimum of 10 to avoid tiny scales
+    return Math.max(10, actualMax * 1.2);
   };
 
 
-  // Update current time every 100ms for last message calculation
+  // Update current time and health status regularly
   timeUpdateInterval = setInterval(() => {
-    setCurrentTime(Date.now());
-  }, 50);
+    const now = Date.now();
+    const bucketTimestamp = Math.floor(now / bucketSizeMs) * bucketSizeMs;
+    setCurrentTime(now);
+
+    // Always ensure we have a current bucket for this time period
+    if (currentBucketStart !== bucketTimestamp) {
+      // Finalize previous bucket if it exists
+      if (currentBucketStart !== null) {
+        finalizeBucket(currentBucketStart, currentBucketData);
+      }
+
+      // Start new bucket for current time period
+      currentBucketStart = bucketTimestamp;
+      currentBucketData = { count: 0, types: {}, hasErrors: false };
+    }
+
+    // Update health status
+    const timeSinceLastMsg = lastMessageTime() ? now - lastMessageTime() : Infinity;
+    updateHealthStatus(currentDataRate(), timeSinceLastMsg);
+
+    // Update current data rate
+    updateCurrentDataRate();
+  }, 100);
 
   useTelemetrySubscription([
     {
@@ -264,7 +297,7 @@ function MessageHistory({ className = '' }) {
             typeName: data.typeName,
             isValid: data.isValid,
             realValues: data.realValues,
-            raw: data.raw ? data.raw.slice(0, 10) : null // Limit raw data display
+            raw: data.raw ? data.raw.slice(0, 10) : null
           });
         } else {
           // Handle legacy format messages
@@ -287,39 +320,16 @@ function MessageHistory({ className = '' }) {
       event: 'bad-message',
       callback: () => {
         addMessage('bad-message');
+        addEvent('error', 'Received malformed message', { timestamp: Date.now() });
       }
     }
   ]);
 
-  // Effect to restore scroll position after messages update
+  // Initialize first event
   createEffect(() => {
-    // Access the messages signal to trigger this effect when messages change
-    messages();
-
-    if (preserveScrollPosition && messageListRef) {
-      // Use requestAnimationFrame to ensure DOM has updated
-      requestAnimationFrame(() => {
-        if (messageListRef) {
-          if (wasAtCapacity) {
-            // When at capacity: one added to top, one removed from bottom
-            // Estimate height of one message to adjust scroll position
-            const firstChild = messageListRef.firstElementChild;
-            const messageHeight = firstChild ? firstChild.offsetHeight + 4 : 50; // +4 for gap
-
-            // Compensate for the new message added at the top
-            messageListRef.scrollTop = scrollTopBefore + messageHeight;
-          } else {
-            // When not at capacity: just one added to top
-            const firstChild = messageListRef.firstElementChild;
-            const messageHeight = firstChild ? firstChild.offsetHeight + 4 : 50;
-
-            // Compensate for the new message added at the top
-            messageListRef.scrollTop = scrollTopBefore + messageHeight;
-          }
-
-          preserveScrollPosition = false;
-        }
-      });
+    const messages = totalMessages();
+    if (messages === 1) { // First message
+      addEvent('connection', 'Data flow started', { timestamp: Date.now() });
     }
   });
 
@@ -328,60 +338,148 @@ function MessageHistory({ className = '' }) {
   });
 
   return (
-    <div class={`${commonStyles.componentPanel} ${styles.messageHistoryContainer} ${className}`}>
+    <div class={`${commonStyles.componentPanel} ${styles.dataFlowContainer} ${className}`}>
+      {/* Header */}
       <div class={commonStyles.componentHeader}>
-        <h3>Message History</h3>
-        <div class={commonStyles.headerStats}>
-          <div class={`${commonStyles.statBox} ${styles.lastMessage}`}>
-            <ValueDisplay
-              label="Last Rx"
-              value={formatLastMessage}
-              unit={getLastMessageUnit}
-              formatFn={(val) => val}
-              className={`${commonStyles.smallText} ${commonStyles.monospaceText}`}
-            />
+        <h3>Data Flow Monitor</h3>
+        <div class={`${styles.healthIndicator} ${styles[connectionHealth()]}`}>
+          <span class={styles.healthDot}></span>
+          <span class={styles.healthText}>{connectionHealth().toUpperCase()}</span>
+        </div>
+      </div>
+
+      {/* Main Content - Side by side layout */}
+      <div class={styles.mainContent}>
+        {/* Left Column - Main Dashboard */}
+        <div class={styles.leftColumn}>
+          {/* Health Stats Row */}
+          <div class={styles.healthStats}>
+        <div class={`${commonStyles.statBox} ${styles.statBox}`}>
+          <ValueDisplay
+            label="Rate"
+            value={() => formatDataRate(currentDataRate())}
+            unit={() => "msg/s"}
+            formatFn={(val) => val}
+            className={`${commonStyles.smallText} ${commonStyles.monospaceText}`}
+          />
+        </div>
+        <div class={`${commonStyles.statBox} ${styles.statBox}`}>
+          <ValueDisplay
+            label="Last Rx"
+            value={formatLastMessage}
+            unit={getLastMessageUnit}
+            formatFn={(val) => val}
+            className={`${commonStyles.smallText} ${commonStyles.monospaceText}`}
+          />
+        </div>
+        <div class={`${commonStyles.statBox} ${styles.statBox}`}>
+          <ValueDisplay
+            label="Total"
+            value={() => totalMessages().toLocaleString()}
+            unit={() => ""}
+            formatFn={(val) => val}
+            className={`${commonStyles.smallText} ${commonStyles.monospaceText}`}
+          />
+        </div>
+        <div class={`${commonStyles.statBox} ${styles.statBox}`}>
+          <ValueDisplay
+            label="Uptime"
+            value={getUptimeDisplay}
+            unit={() => ""}
+            formatFn={(val) => val}
+            className={`${commonStyles.smallText} ${commonStyles.monospaceText}`}
+          />
+        </div>
+      </div>
+
+          {/* Mini Chart */}
+          <div class={styles.chartSection}>
+            <div class={styles.miniChart}>
+              <svg viewBox="0 0 400 100" class={styles.chartSvg}>
+                {getMiniChartData().map((bucket, index) => {
+                  const maxRate = getMaxRate();
+                  let height, fill, opacity;
+
+                  if (bucket.rate === 0) {
+                    // Show small red bars for zero-rate periods (system running but no data)
+                    height = 4; // Small fixed height
+                    fill = 'var(--color-warrRed)';
+                    opacity = "0.6";
+                  } else {
+                    // Normal data bars - red if errors present, otherwise based on rate
+                    height = maxRate > 0 ? (bucket.rate / maxRate) * 95 : 0;
+                    if (bucket.hasErrors) {
+                      fill = 'var(--color-warrRed)';
+                    } else {
+                      fill = bucket.rate > healthyThresholdMin ? 'var(--color-warrGreen)' :
+                             bucket.rate > degradedThresholdMin ? 'var(--color-warrYellow)' : 'var(--color-warrRed)';
+                    }
+                    opacity = "0.8";
+                  }
+
+                  const x = (index / 60) * 400;
+                  const y = bucket.rate === 0 ? 96 : (100 - height - 2); // Position small bars near bottom
+
+                  return (
+                    <rect
+                      key={bucket.timestamp}
+                      x={x}
+                      y={y}
+                      width="6"
+                      height={height}
+                      fill={fill}
+                      opacity={opacity}
+                    />
+                  );
+                })}
+              </svg>
+            </div>
           </div>
-          <div class={`${commonStyles.statBox} ${styles.avgDeltaT}`}>
-            <ValueDisplay
-              label="Avg Δ"
-              value={getAvgDeltaTValue}
-              unit={getAvgDeltaTUnit}
-              formatFn={(val) => val}
-              className={`${commonStyles.smallText} ${commonStyles.monospaceText}`}
-            />
+        </div>
+
+        {/* Right Column - Sidebar */}
+        <div class={styles.rightColumn}>
+
+          {/* Message Type Breakdown */}
+          <div class={styles.typeBreakdown}>
+            <div class={styles.typeList}>
+              {Object.entries(messageTypeBreakdown()).map(([type, count]) => (
+                <div key={type} class={styles.typeItem}>
+                  <span class={styles.typeName}>{type}</span>
+                  <span class={styles.typeCount}>{count}/s</span>
+                </div>
+              ))}
+              {Object.keys(messageTypeBreakdown()).length === 0 && (
+                <div class={styles.emptyTypes}>No recent messages</div>
+              )}
+            </div>
+          </div>
+
+          {/* Event Log */}
+          <div class={styles.eventSection}>
+            <div class={styles.eventList} ref={eventListRef}>
+              {events().slice(0, 10).map((event) => (
+                <div key={event.id} class={`${commonStyles.borderedContainer} ${styles.eventEntry}`}>
+                  <div class={getEventTypeClass(event.type)}>
+                    {event.type}
+                  </div>
+                  <div class={styles.eventMessage}>
+                    {event.message}
+                  </div>
+                  <div class={`${styles.eventTime} ${commonStyles.smallText}`}>
+                    {formatTimestamp(event.timestamp)}
+                  </div>
+                </div>
+              ))}
+              {events().length === 0 && (
+                <div class={styles.emptyState}>
+                  No events yet...
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-      <div class={styles.messageList} ref={messageListRef} onScroll={handleScroll}>
-        {messages().map((message) => (
-          <div key={message.id} class={`${commonStyles.borderedContainer} ${styles.messageEntry}`}>
-            <div class={`${getMessageTypeClass(message.type)} ${commonStyles.smallText} ${commonStyles.monospaceText}`}>
-              {message.type}
-            </div>
-            <div class={`${styles.messageTime} ${commonStyles.smallText} ${commonStyles.monospaceText}`}>
-              {formatTimestamp(message.timestamp)}
-            </div>
-            <div class={getDeltaColorClass(message)}>
-              Δ{formatDeltaTime(message.deltaTime)}
-            </div>
-          </div>
-        ))}
-        {messages().length === 0 && (
-          <div class={styles.emptyState}>
-            No messages received yet...
-          </div>
-        )}
-      </div>
-      {showBackToTop() && (
-        <button
-          class={styles.backToTopButton}
-          onClick={scrollToTop}
-          title="Return to top"
-        >
-          <span class={styles.buttonIcon}>↑</span>
-          <span class={styles.buttonText}>Return to Top</span>
-        </button>
-      )}
     </div>
   );
 }

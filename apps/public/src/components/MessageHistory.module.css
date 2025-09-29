@@ -1,179 +1,308 @@
-/* MessageHistory specific styles */
-.messageHistoryContainer {
+/* Data Flow Monitor - New Dashboard Style */
+.dataFlowContainer {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  overflow: hidden;
 }
 
-.messageList {
+.mainContent {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.leftColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.rightColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.healthIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--color-borderRadius);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.healthDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 2s infinite;
+}
+
+.nominal {
+  background: transparent;
+  color: var(--color-warrGreen);
+  border: 1px solid transparent;
+}
+
+.degraded {
+  background: color-mix(in srgb, var(--color-warrYellow) 15%, transparent);
+  color: var(--color-warrYellow);
+  border: 1px solid color-mix(in srgb, var(--color-warrYellow) 30%, transparent);
+}
+
+.stopped {
+  background: color-mix(in srgb, var(--color-warrRed) 15%, transparent);
+  color: var(--color-warrRed);
+  border: 1px solid color-mix(in srgb, var(--color-warrRed) 30%, transparent);
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+.healthStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0.35rem;
+  padding: 0.25rem;
+}
+
+.healthStats .statBox {
+  min-width: 0; /* Allow grid items to shrink */
+  padding: 0.2rem 0.35rem !important;
+  font-size: 0.8rem;
+}
+
+
+.chartSection {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 0.25rem;
+}
+
+/* Subtitle styles removed */
+
+.miniChart {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--color-borderRadius);
+  overflow: hidden;
+  flex: 1;
+  min-height: 100px;
+  padding: 0.25rem;
+}
+
+.chartSvg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.typeBreakdown {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  padding: 0.25rem;
+}
+
+/* Subtitle styles removed */
+
+.typeList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.1rem;
+}
+
+.typeItem {
+  display: flex;
+  align-items: center;
+  padding: 0.1rem 0.3rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--color-borderRadius);
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.typeName {
+  font-weight: 500;
+  color: var(--color-text);
+  margin-right: 0.3rem;
+}
+
+.typeCount {
+  font-weight: 600;
+  color: var(--color-primary);
+  font-family: var(--font-mono);
+  margin-left: auto;
+}
+
+.emptyTypes {
+  text-align: center;
+  color: var(--color-textSecondary);
+  font-style: italic;
+  padding: 1rem;
+}
+
+
+.eventSection {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 0.25rem;
+}
+
+.eventHeader {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 0.3rem;
+}
+
+/* Subtitle styles removed */
+
+/* Toggle button styles removed */
+
+.eventList {
   flex: 1;
   overflow-y: auto;
-  padding: 0.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-height: 0;
 }
 
-.messageEntry {
+.eventEntry {
   display: flex;
-  justify-content: flex-start;
   align-items: center;
-  padding: 0 0.5rem;
   gap: 0.75rem;
+  padding: 0.25rem 0.5rem;
   min-height: unset;
 }
 
-.messageEntry:hover {
+.eventEntry:hover {
   background: var(--color-surfaceSecondary);
   border-color: var(--color-primary);
 }
 
-
-.messageTime {
-  color: var(--color-textSecondary);
-  font-weight: 500;
-  flex-shrink: 0;
-}
-
-.messageType {
+.eventType {
   padding: 0.1rem 0.4rem;
   border-radius: var(--color-borderRadius);
   font-weight: 600;
-  /* text-transform: uppercase; */
+  font-size: 0.75rem;
+  text-transform: uppercase;
   letter-spacing: 0.5px;
   flex-shrink: 0;
-  width: 20ch;
-  max-width: 20ch;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-width: 8ch;
+  text-align: center;
 }
 
-/* Message type specific colors - extend common patterns */
-.messageTypeSystem {
-  /* color: var(--color-primary); */
+.eventTypeHealth {
+  background: color-mix(in srgb, var(--color-warrGreen) 20%, transparent);
+  color: var(--color-warrGreen);
 }
 
-.messageTypePower {
-  /* color: #ffc107; */
+.eventTypeRate {
+  background: color-mix(in srgb, var(--color-warrBlue1) 20%, transparent);
+  color: var(--color-warrBlue1);
 }
 
-.messageTypeTemperature {
-  /* color: #00bcd4; */
+.eventTypeConnection {
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  color: var(--color-primary);
 }
 
-.messageTypeExperiment {
-  /* color: #9c27b0; */
-}
-
-.messageTypeBad {
+.eventTypeError {
+  background: color-mix(in srgb, var(--color-warrRed) 20%, transparent);
   color: var(--color-warrRed);
 }
 
-.messageTypeDefault {
+.eventTypeDefault {
+  background: var(--color-surface);
   color: var(--color-textSecondary);
 }
 
-.messageDelta {
+.eventMessage {
+  flex: 1;
+  font-size: 0.85rem;
   color: var(--color-text);
-  font-weight: 600;
-  opacity: 0.8;
+}
+
+.eventTime {
+  color: var(--color-textSecondary);
+  font-weight: 500;
   flex-shrink: 0;
-  margin-left: auto;
-  transition: color 0.2s ease;
+  font-family: var(--font-mono);
 }
-
-.deltaAboveAvg {
-  color: var(--color-warrYellow) !important;
-  opacity: 1;
-}
-
-.deltaBelowAvg {
-  color: var(--color-warrBlue1) !important;
-  opacity: 1;
-}
-
-.deltaEqualAvg {
-  color: var(--color-textSecondary) !important;
-  opacity: 0.8;
-}
-
 
 .emptyState {
   text-align: center;
   color: var(--color-textSecondary);
   font-style: italic;
-  padding: 2rem;
+  padding: 1rem;
 }
 
-.backToTopButton {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  width: auto;
-  height: 40px;
-  padding: 0 1rem;
-  border-radius: var(--color-borderRadius);
-  background: color-mix(in srgb, var(--color-background) 20%, transparent);
-  backdrop-filter: blur(5px);
-  color: var(--color-text);
-  border: 1px solid var(--color-warrYellow);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
-  z-index: 10;
-  white-space: nowrap;
+/* Enhanced scrollbar for event list */
+.eventList::-webkit-scrollbar {
+  width: 6px;
 }
 
-.backToTopButton:hover {
-  background: color-mix(in srgb, var(--color-background) 40%, transparent);
-  transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-  border-color: var(--color-primary);
-}
-
-.buttonIcon {
-  font-size: 1.1rem;
-  line-height: 1;
-}
-
-.buttonText {
-  font-size: 0.85rem;
-}
-
-.backToTopButton:active {
-  transform: translateY(0);
-}
-
-/* Enhanced scrollbar for message list */
-.messageList::-webkit-scrollbar {
-  width: 8px;
-}
-
-.messageList::-webkit-scrollbar-track {
+.eventList::-webkit-scrollbar-track {
   background: var(--color-surface);
   border-radius: var(--color-borderRadius);
 }
 
-.messageList::-webkit-scrollbar-thumb {
+.eventList::-webkit-scrollbar-thumb {
   background: var(--color-border);
   border-radius: var(--color-borderRadius);
 }
 
-.messageList::-webkit-scrollbar-thumb:hover {
+.eventList::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary);
 }
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
-  .messageHistory {
-    height: 300px;
-    max-height: 300px;
-    min-height: 250px;
+  .mainContent {
+    flex-direction: column;
+  }
+
+  .rightColumn {
+    max-width: none;
+    min-width: 0;
+  }
+
+  .healthStats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .typeList {
+    grid-template-columns: 1fr;
+  }
+
+  .eventList {
+    max-height: 150px;
+  }
+
+  .miniChart {
+    height: 80px;
   }
 }
