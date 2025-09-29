@@ -4,7 +4,7 @@
   flex: 1;
   display: grid;
   min-height: 0;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: auto auto;
   grid-template-rows: 100%;
 }
 
@@ -39,7 +39,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 120px;
+  min-height: 80px;
 }
 
 .voltageplot {
@@ -58,7 +58,7 @@
 .powerDiagram {
   width: 100%;
   height: 100%;
-  padding: 0.5em 1em;
+  padding: 0.25rem 0.25rem;
   box-sizing: border-box;
   /* max-width: 500px;
   max-height: 300px; */
@@ -116,6 +116,18 @@
 .componentBox.error {
   fill: var(--color-surface);
   stroke: var(--color-warrRed);
+  stroke-width: 5;
+}
+
+.railColorOverlay {
+  fill: none;
+  stroke-width: 2;
+  rx: 0;
+  ry: 0;
+}
+
+.railColorOverlay.error {
+  stroke: var(--color-error)!important;
 }
 
 .componentText {

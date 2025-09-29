@@ -38,7 +38,7 @@ function SystemCard({ type, className = '' }) {
             </div>
             <div class={styles.systemContent}>
               <div class={styles.modeDisplay}>
-                <label>Mode:</label>
+                <label>Mode</label>
                 <span class={getModeClass(systemData().SYSTEM.mode, styles)}>
                   {getModeDisplay(systemData().SYSTEM.mode, systemData().SYSTEM.rawModeCode)}
                 </span>
@@ -62,7 +62,7 @@ function SystemCard({ type, className = '' }) {
             </div>
             <div class={styles.systemContent}>
               <div class={styles.chambersContainer}>
-                <label>Chambers:</label>
+                <label>Chambers</label>
                 <div class={styles.chambers}>
                   {renderExperimentChambers(systemData().EXPERIMENT.chambers)}
                 </div>
@@ -77,7 +77,7 @@ function SystemCard({ type, className = '' }) {
             <div class={styles.systemHeader}>
               <div class={styles.headerTitle}>
                 <BsThermometerHalf size={18} class={styles.headerIcon} />
-                <h3>TEMP</h3>
+                <h3>TMP</h3>
               </div>
               <div class={styles.spacer}></div>
               <div class={getStatusClass(systemData().TEMPERATURE.status, styles)}>
@@ -87,7 +87,11 @@ function SystemCard({ type, className = '' }) {
             <div class={styles.systemContent}>
               <ValueDisplay
                 label="Cold Side"
-                value={() => systemData().TEMPERATURE.coldSideTemp !== null ? systemData().TEMPERATURE.coldSideTemp / 1000.0 : null}
+                value={() => {
+                  const temp = systemData().TEMPERATURE.coldSideTemp;
+                  if (temp === null) return null;
+                  return Math.abs(temp) > 100 ? temp / 1000.0 : temp;
+                }}
                 unit="°C"
                 precision={2}
               />
@@ -111,7 +115,14 @@ function SystemCard({ type, className = '' }) {
             <div class={styles.systemContent}>
               <ValueDisplay
                 label="Battery"
-                value={() => systemData().POWER.batteryVoltage !== null ? systemData().POWER.batteryVoltage / 1000.0 : null}
+                value={() => {
+                  const voltage = systemData().POWER.batteryVoltage;
+                  if (voltage === null) return null;
+                  // New TLM format provides voltages in volts, old format in millivolts
+                  // If voltage is a reasonable volt value (0-50V), use as-is
+                  // If voltage is large (like millivolts), divide by 1000
+                  return voltage > 50 ? voltage / 1000.0 : voltage;
+                }}
                 unit="V"
                 precision={2}
               />

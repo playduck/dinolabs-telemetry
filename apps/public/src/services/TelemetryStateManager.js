@@ -13,17 +13,54 @@ class TelemetryStateManager {
     this.timeoutInterval = null;
     this.unsubscribeMessage = null;
 
-    // Initialize the centralized state
+    // Initialize the centralized state with support for new TLM format
     const [state, setState] = createSignal({
       systems: {
-        SYSTEM: { status: 'OFFLINE', mode: 'STANDBY', rawModeCode: null, cpuUsage: null, storageCapacity: null },
-        EXPERIMENT: { status: 'OFFLINE', chambers: [false, false, false, false, false, false] },
-        TEMPERATURE: { status: 'OFFLINE', coldSideTemp: null, hotSideTemp: null },
-        POWER: { status: 'OFFLINE', batteryVoltage: null, powerState: null, rails: {} },
-        COOLING: { status: 'OFFLINE', tecs: {}, fan: {} }
+        SYSTEM: {
+          status: 'OFFLINE',
+          mode: 'STANDBY',
+          rawModeCode: null,
+          cpuUsage: null,
+          storageCapacity: null,
+          soc: null, // State of charge
+          epoch: null,
+          extFanPwm: null,
+          chargeVoltage: null,
+          fcsState: null
+        },
+        EXPERIMENT: {
+          status: 'OFFLINE',
+          chambers: [false, false, false, false, false, false],
+          channels: {}, // EXP1/EXP2 channel data
+          imu: null // EXP_IMU data
+        },
+        TEMPERATURE: {
+          status: 'OFFLINE',
+          coldSideTemp: null,
+          hotSideTemp: null,
+          tecVoltage: null,
+          tecCurrent: null,
+          fanPwm: null,
+          statsBytes: null
+        },
+        POWER: {
+          status: 'OFFLINE',
+          batteryVoltage: null,
+          batteryCurrent: null,
+          powerState: null,
+          statusByte: null,
+          rails: {}
+        },
+        COOLING: {
+          status: 'OFFLINE',
+          tecs: {},
+          fan: {}
+        }
       },
       derived: {
-        accelerometerMagnitude: null
+        accelerometerMagnitude: null,
+        totalPowerConsumption: null,
+        temperatureDifferential: null
       },
       timestamps: {
         lastMessage: null,
@@ -62,20 +99,33 @@ class TelemetryStateManager {
 
     this.setState(prevState => {
       const newState = { ...prevState };
-      
+
       // Update timestamps
       newState.timestamps = { ...prevState.timestamps, ...processedData.timestamps };
 
-      // Update systems
+      // Update systems - deep merge for new TLM format
       newState.systems = { ...prevState.systems };
       Object.keys(processedData.systems).forEach(systemKey => {
-        newState.systems[systemKey] = {
-          ...prevState.systems[systemKey],
-          ...processedData.systems[systemKey]
-        };
+        if (systemKey === 'EXPERIMENT' && processedData.systems[systemKey].channels) {
+          // Special handling for experiment channels - merge instead of replace
+          newState.systems[systemKey] = {
+            ...prevState.systems[systemKey],
+            ...processedData.systems[systemKey],
+            channels: {
+              ...prevState.systems[systemKey].channels,
+              ...processedData.systems[systemKey].channels
+            }
+          };
+        } else {
+          // Standard merge for other systems
+          newState.systems[systemKey] = {
+            ...prevState.systems[systemKey],
+            ...processedData.systems[systemKey]
+          };
+        }
       });
 
-      // Handle status flags from SystemStatus messages
+      // Handle status flags from legacy SystemStatus messages
       if (processedData.statusFlags) {
         // Update subsystem statuses based on status flags
         newState.systems.EXPERIMENT = {
@@ -92,8 +142,13 @@ class TelemetryStateManager {
         };
       }
 
-      // Calculate derived values
-      newState.derived = calculateDerivedValues(data, prevState.derived);
+      // Calculate and merge derived values
+      const derivedValues = calculateDerivedValues(data, prevState.derived);
+      if (processedData.derived) {
+        newState.derived = { ...derivedValues, ...processedData.derived };
+      } else {
+        newState.derived = derivedValues;
+      }
 
       return newState;
     });
@@ -108,6 +163,7 @@ class TelemetryStateManager {
       // No message for 5 seconds - mark all systems as offline
       this.setState(createOfflineState());
       this.notifySubscribers('state-update', this.state());
+      console.log('Telemetry timeout - marked systems as offline');
     }
   }
 

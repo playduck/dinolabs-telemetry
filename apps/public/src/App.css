@@ -41,7 +41,7 @@
 .main-layout {
   display: grid;
   grid-template-columns: repeat(24, 1fr);
-  grid-template-rows: repeat(7, minmax(0, 1fr));
+  grid-template-rows: auto repeat(6, minmax(0, 1fr));
   gap: 0.5rem;
   padding: 0.5rem;
   height: calc(100vh - var(--header-height, 60px) - var(--footer-height, 60px));
@@ -71,8 +71,8 @@
 }
 
 .power-panel-grid-item {
-  grid-column: 1 / 19;
-  grid-row: 5 / 8;
+  grid-column: 1 / 13;
+  grid-row: 6 / 8;
 }
 
 .message-history-grid-item {

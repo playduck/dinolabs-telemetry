@@ -202,6 +202,7 @@ function MessageHistory({ className = '' }) {
     switch (type) {
       case 'bad-message':
         return `${styles.messageType} ${styles.messageTypeBad}`;
+      // Legacy format
       case 'SystemStatus':
         return `${styles.messageType} ${styles.messageTypeSystem}`;
       case 'PowerState':
@@ -210,6 +211,19 @@ function MessageHistory({ className = '' }) {
         return `${styles.messageType} ${styles.messageTypeTemperature}`;
       case 'ExperiementState':
         return `${styles.messageType} ${styles.messageTypeExperiment}`;
+      // New TLM format
+      case 'TEC':
+        return `${styles.messageType} ${styles.messageTypeTemperature}`;
+      case 'POWER':
+        return `${styles.messageType} ${styles.messageTypePower}`;
+      case 'SYSTEM':
+        return `${styles.messageType} ${styles.messageTypeSystem}`;
+      case 'EXP1':
+      case 'EXP2':
+      case 'EXPIMU':
+        return `${styles.messageType} ${styles.messageTypeExperiment}`;
+      case 'FCS':
+        return `${styles.messageType} ${styles.messageTypeSystem}`;
       default:
         return `${styles.messageType} ${styles.messageTypeDefault}`;
     }
@@ -240,21 +254,33 @@ function MessageHistory({ className = '' }) {
     {
       event: 'message',
       callback: (data) => {
-      if (!data) return;
+        if (!data) return;
 
-      // Log each message type separately
-      if (data.SystemStatus) {
-        addMessage('SystemStatus', data.SystemStatus);
-      }
-      if (data.PowerState) {
-        addMessage('PowerState', data.PowerState);
-      }
-      if (data.CoolingState) {
-        addMessage('CoolingState', data.CoolingState);
-      }
-      if (data.ExperiementState) {
-        addMessage('ExperiementState', data.ExperiementState);
-      }
+        // Handle new TLM format messages
+        if (data.type !== undefined && data.typeName && data.data) {
+          // This is a new TLM format message
+          addMessage(data.typeName, {
+            type: data.type,
+            typeName: data.typeName,
+            isValid: data.isValid,
+            realValues: data.realValues,
+            raw: data.raw ? data.raw.slice(0, 10) : null // Limit raw data display
+          });
+        } else {
+          // Handle legacy format messages
+          if (data.SystemStatus) {
+            addMessage('SystemStatus', data.SystemStatus);
+          }
+          if (data.PowerState) {
+            addMessage('PowerState', data.PowerState);
+          }
+          if (data.CoolingState) {
+            addMessage('CoolingState', data.CoolingState);
+          }
+          if (data.ExperiementState) {
+            addMessage('ExperiementState', data.ExperiementState);
+          }
+        }
       }
     },
     {

@@ -30,17 +30,46 @@ class DummyDataSource:
 
     def generate_power_message(self) -> PowerMessage:
         """Generate random power message."""
-        return PowerMessage.from_real_values(
-            battery_voltage=random.uniform(12.0, 16.8),     # 12-16.8V battery
-            battery_current=random.uniform(0.5, 8.5),       # 0.5-8.5A battery current
-            rail_12v_voltage=random.uniform(11.5, 12.5),    # 11.5-12.5V on 12V rail
-            rail_12v_current=random.uniform(0.1, 4.5),      # 0.1-4.5A on 12V rail
-            rail_5v_voltage=random.uniform(4.8, 5.2),       # 4.8-5.2V on 5V rail
-            rail_5v_current=random.uniform(0.1, 2.8),       # 0.1-2.8A on 5V rail
-            rail_3v3_voltage=random.uniform(3.1, 3.5),      # 3.1-3.5V on 3.3V rail (nominal 3.3V)
-            rail_3v3_current=random.uniform(0.1, 1.8),      # 0.1-1.8A on 3.3V rail
-            status_byte=random.randint(0, 63)               # Power status
+
+        battery_voltage = random.uniform(12.0, 16.8)
+        battery_current = random.uniform(0.5, 8.5)
+        rail_12v_voltage = random.uniform(11.1, 12.5)
+        rail_12v_current = random.uniform(0.1, 4.5)
+        rail_5v_voltage = random.uniform(4.5, 5.4)
+        rail_5v_current = random.uniform(0.1, 2.8)
+        rail_3v3_voltage = random.uniform(3.0, 3.5)
+        rail_3v3_current = random.uniform(0.1, 1.8)
+
+        message = PowerMessage.from_real_values(
+            battery_voltage=battery_voltage,               # 12-16.8V battery voltage
+            battery_current=battery_current,                # 0.5-8.5A battery current
+            rail_12v_voltage=rail_12v_voltage,             # 11.5-12.5V on 12V rail
+            rail_12v_current=rail_12v_current,             # 0.1-4.5A on 12V rail
+            rail_5v_voltage=rail_5v_voltage,               # 4.8-5.2V on 5V rail
+            rail_5v_current=rail_5v_current,               # 0.1-2.8A on 5V rail
+            rail_3v3_voltage=rail_3v3_voltage,             # 3.1-3.5V on 3.3V rail (nominal 3.3V)
+            rail_3v3_current=rail_3v3_current,             # 0.1-1.8A on 3.3V rail
+            status_byte=0x00
         )
+
+        if battery_voltage < 11.5 or battery_voltage > 17.0:
+            message.status_byte |= 0x01  # Low battery warning
+        if rail_12v_voltage < 11.4 or rail_12v_voltage > 12.6:
+            message.status_byte |= 0x02  # 12V rail warning
+        if rail_5v_voltage < 4.7 or rail_5v_voltage > 5.3:
+            message.status_byte |= 0x04  # 5V rail warning
+        if rail_3v3_voltage < 3.0 or rail_3v3_voltage > 3.6:
+            message.status_byte |= 0x08  # 3.3V rail warning
+
+        charge_source = random.choice(['NONE', 'USB', 'UMB', 'ERROR'])
+        if charge_source == 'USB':
+            message.status_byte |= 0x10  # USB charging source
+        elif charge_source == 'UMB':
+            message.status_byte |= 0x20  # UMB charging source
+        if charge_source == 'ERROR':
+            message.status_byte |= 0x10 | 0x20  # Both sources active - error
+
+        return message
 
     def generate_sys_message(self) -> SysMessage:
         """Generate random system message."""

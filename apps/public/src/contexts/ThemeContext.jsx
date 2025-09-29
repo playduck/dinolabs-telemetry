@@ -63,37 +63,37 @@ const themes = {
       borderRadius: '4px'
     }
   },
-  // space: {
-  //   name: 'space',
-  //   colors: {
-  //     primary: '#00d4ff',
-  //     secondary: '#7c4dff',
-  //     accent: '#ff4081',
-  //     background: '#1c1136ff',
-  //     backgroundGradient: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a3e 50%, #2a1a4a 100%)',
-  //     surface: '#1a1a3e',
-  //     surfaceSecondary: 'rgba(0, 212, 255, 0.1)',
-  //     border: 'rgba(0, 212, 255, 0.3)',
-  //     text: '#ffffff',
-  //     textSecondary: 'rgba(255, 255, 255, 0.9)',
-  //     success: '#00e676',
-  //     error: '#ff5252',
-  //     warning: '#ffab40',
-  //     info: '#40c4ff',
-  //     grid: '#3a3a6e',
-  //     gridSecondary: '#5a5a8e',
-  //     // WARR legacy colors
-  //     warrBlue1: '#00d4ff',
-  //     warrBlue2: '#7c4dff',
-  //     warrBlue3: '#ff4081',
-  //     warrBlack: '#0a0a0a',
-  //     warrRed: '#ff5252',
-  //     warrGreen: '#00e676',
-  //     warrYellow: '#ffab40',
-  //     warrBackground: '#1a1a3e',
-  //     borderRadius: '4px'
-  //   }
-  // }
+  space: {
+    name: 'space',
+    colors: {
+      primary: '#00d4ff',
+      secondary: '#7c4dff',
+      accent: '#ff4081',
+      background: '#1c1136ff',
+      backgroundGradient: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a3e 50%, #2a1a4a 100%)',
+      surface: '#1a1a3e',
+      surfaceSecondary: 'rgba(0, 212, 255, 0.1)',
+      border: 'rgba(0, 212, 255, 0.3)',
+      text: '#ffffff',
+      textSecondary: 'rgba(255, 255, 255, 0.9)',
+      success: '#00e676',
+      error: '#ff5252',
+      warning: '#ffab40',
+      info: '#40c4ff',
+      grid: '#3a3a6e',
+      gridSecondary: '#5a5a8e',
+      // WARR legacy colors
+      warrBlue1: '#00d4ff',
+      warrBlue2: '#7c4dff',
+      warrBlue3: '#ff4081',
+      warrBlack: '#0a0a0a',
+      warrRed: '#ff5252',
+      warrGreen: '#00e676',
+      warrYellow: '#ffab40',
+      warrBackground: '#1a1a3e',
+      borderRadius: '8px'
+    }
+  }
 };
 
 const ThemeContext = createContext();

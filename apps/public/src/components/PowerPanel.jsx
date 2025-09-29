@@ -30,23 +30,30 @@ function PowerPanel({ className }) {
     return voltageChanged || railsChanged;
   };
 
-  // Helper function to format voltage values (convert from mV to V)
+  // Helper function to format voltage values (smart detection of unit)
   const formatVoltage = (voltage) => {
     if (voltage === null || voltage === undefined) return '--.-V';
-    return `${(voltage / 1000.0).toFixed(2)}V`;
+    // If voltage is large (>50), assume it's in millivolts and convert to volts
+    // If voltage is small (<=50), assume it's already in volts
+    const volts = voltage > 50 ? voltage / 1000.0 : voltage;
+    return `${volts.toFixed(2)}V`;
   };
 
-  // Helper function to format current values (convert from mA to A)
+  // Helper function to format current values (smart detection of unit)
   const formatCurrent = (current) => {
     if (current === null || current === undefined) return '-.--A';
-    return `${(current / 1000.0).toFixed(2)}A`;
+    // If current is large (>10), assume it's in milliamps and convert to amps
+    // If current is small (<=10), assume it's already in amps
+    const amps = Math.abs(current) > 10 ? current / 1000.0 : current;
+    return `${amps.toFixed(2)}A`;
   };
 
   // Helper function to format power values (U*I in watts)
   const formatPower = (voltage, current) => {
     if (voltage === null || voltage === undefined || current === null || current === undefined) return '-.-W';
-    const volts = voltage / 1000.0;
-    const amps = current / 1000.0;
+    // Smart unit detection for both voltage and current
+    const volts = voltage > 50 ? voltage / 1000.0 : voltage;
+    const amps = Math.abs(current) > 10 ? current / 1000.0 : current;
     const watts = volts * amps;
     return `${watts.toFixed(1)}W`;
   };
@@ -58,25 +65,64 @@ function PowerPanel({ className }) {
     return source === data.chargeSource ? 'active' : 'disconnected';
   };
 
-  // Check if a rail has errors (failed or out of range)
+  // Check if a rail has errors using status_byte from PowerMessage
   const isRailError = (railName) => {
     const data = powerData();
-    if (!data || !data.rails) return false;
+    if (!data || !data.rails) return true;
 
-    const failedKey = `rail_${railName}_failed`;
-    const inRangeKey = `rail_${railName}_inrange`;
+    // Map rail names to actual status flag names in the data
+    const railStatusMap = {
+      'vbat': 'rail_vbat_ok',
+      '12v': 'rail_12v_ok',
+      '5v': 'rail_5v_ok',
+      '3v3': 'rail_3v3_ok'
+    };
 
-    return data.rails[failedKey] || !data.rails[inRangeKey];
+    const statusKey = railStatusMap[railName];
+    if (!statusKey) return true;
+
+    // Check status flags from PowerMessage status_byte (error = NOT ok)
+    const statusValue = data.rails[statusKey];
+
+    // Debug: Only show errors for truly bad values, ignore status byte for now
+    // until we confirm the backend status byte generation is working correctly
+    if (statusValue === undefined || statusValue === null) {
+      return true; // No status data available, assume Bad
+    }
+
+    return statusValue === false;
   };
+
+  const colors = {
+    'vbat': '#00bfff',
+    '12v': '#ffa500',
+    '5v': '#9370db',
+    '3v3': '#20b2aa'
+  }
 
   // Voltage plot configuration
   const voltageSeries = [
     {}, // Time axis
-    { label: "VBat", stroke: "#00bfff", width: 1 },
-    { label: "+12V", stroke: "#ffa500", width: 1 },
-    { label: "+5V", stroke: "#9370db", width: 1 },
-    { label: "+3V3", stroke: "#20b2aa", width: 1 }
+    { label: "VBat", stroke: `${colors['vbat']}`, width: 1 },
+    { label: "+12V", stroke: `${colors['12v']}`, width: 1 },
+    { label: "+5V", stroke: `${colors['5v']}`, width: 1 },
+    { label: "+3V3", stroke: `${colors['3v3']}`, width: 1 }
   ];
+
+  const getRailColor = (railName) => {
+    switch (railName) {
+      case 'vbat':
+        return colors['vbat'];
+      case '12v':
+        return colors['12v'];
+      case '5v':
+        return colors['5v'];
+      case '3v3':
+        return colors['3v3'];
+      default:
+        return 'var(--color-textSecondary)';
+    }
+  };
 
   const voltageAxes = [
     {
@@ -140,25 +186,27 @@ function PowerPanel({ className }) {
     if (data && hasDataChanged(data, lastData)) {
       const timestamp = Date.now() / 1000;
 
-      // Update voltage plot
+      // Update voltage plot (smart unit detection)
       if (voltageRef && voltageRef.addDataPoint) {
+        const convertVoltage = (v) => v ? (v > 50 ? v / 1000 : v) : null;
         voltageRef.addDataPoint(
           timestamp,
-          data.batteryVoltage ? data.batteryVoltage / 1000 : null,
-          data.rails?.V_Rail_12V ? data.rails.V_Rail_12V / 1000 : null,
-          data.rails?.V_Rail_5V ? data.rails.V_Rail_5V / 1000 : null,
-          data.rails?.V_Rail_3V3 ? data.rails.V_Rail_3V3 / 1000 : null
+          convertVoltage(data.batteryVoltage),
+          convertVoltage(data.rails?.V_Rail_12V),
+          convertVoltage(data.rails?.V_Rail_5V),
+          convertVoltage(data.rails?.V_Rail_3V3)
         );
       }
 
-      // Update current plot
+      // Update current plot (smart unit detection)
       if (currentRef && currentRef.addDataPoint) {
+        const convertCurrent = (c) => c ? (Math.abs(c) > 10 ? c / 1000 : c) : null;
         currentRef.addDataPoint(
           timestamp,
-          data.rails?.I_Battery ? data.rails.I_Battery / 1000 : null,
-          data.rails?.I_Rail_12V ? data.rails.I_Rail_12V / 1000 : null,
-          data.rails?.I_Rail_5V ? data.rails.I_Rail_5V / 1000 : null,
-          data.rails?.I_Rail_3V3 ? data.rails.I_Rail_3V3 / 1000 : null
+          convertCurrent(data.rails?.I_Battery),
+          convertCurrent(data.rails?.I_Rail_12V),
+          convertCurrent(data.rails?.I_Rail_5V),
+          convertCurrent(data.rails?.I_Rail_3V3)
         );
       }
 
@@ -175,7 +223,12 @@ function PowerPanel({ className }) {
           <div class={`${commonStyles.statBox} ${styles.batteryVoltage}`}>
             <ValueDisplay
               label="Battery"
-              value={() => powerData()?.batteryVoltage ? (powerData().batteryVoltage / 1000.0).toFixed(2) : null}
+              value={() => {
+                const voltage = powerData()?.batteryVoltage;
+                if (!voltage) return null;
+                // Smart unit detection: if voltage > 50, assume millivolts, else volts
+                return voltage > 50 ? (voltage / 1000.0).toFixed(2) : voltage.toFixed(2);
+              }}
               unit="V"
               className={`${commonStyles.smallText} ${commonStyles.monospaceText}`}
             />
@@ -192,7 +245,7 @@ function PowerPanel({ className }) {
       <div class={styles.contentSection}>
         <div class={styles.diagramSection}>
           <div class={styles.diagramContainer}>
-            <svg class={styles.powerDiagram} viewBox="30 20 340 230" preserveAspectRatio="xMidYMid meet">
+            <svg class={styles.powerDiagram} viewBox="30 40 340 210" preserveAspectRatio="xMidYMid meet">
             {/* Arrow markers for power flow direction */}
             <defs>
               <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
@@ -222,7 +275,7 @@ function PowerPanel({ className }) {
                  Path coordinates: Start bottom-left → bottom-right → top-right → around right terminal → between terminals → around left terminal → close */}
             <path d="M 30 50 L 30 90 L 110 90 L 110 50 L 96 50 L 96 43 L 77 43 L 77 50 L 63 50 L 63 43 L 44 43 L 44 50 Z"
                   class={`${styles.componentBox} ${styles.battery}`} />
-            <text x="70" y="30" class={styles.componentText}>Battery</text>
+            <text x="70" y="105" class={styles.componentText}>Battery</text>
             <text x="70" y="70" class={`${styles.componentText} ${styles.value}`}>
               {formatVoltage(powerData()?.batteryVoltage)}
             </text>
@@ -244,48 +297,52 @@ function PowerPanel({ className }) {
 
             {/* BMS Central Block - Full height to match input/output stacks */}
             <rect x="160" y="50" width="80" height="190" class={`${styles.componentBox} ${styles.bms}`} />
-            <text x="200" y="140" class={styles.componentText}>BMS</text>
+            <text x="200" y="140" class={styles.componentText}>PWRPCB</text>
             <text x="200" y="158" class={`${styles.componentText} ${styles.small}`}>
               {powerData()?.status === 'OFFLINE' ? 'OFFLINE' : 'NOMINAL'}
             </text>
 
             {/* Output Rails - Right Column */}
-            <text x="330" y="30" class={styles.componentText}>Output Rails</text>
+            {/* <text x="330" y="30" class={styles.componentText}>Output Rails</text> */}
             {/* VBat */}
-            <rect x="290" y="50" width="80" height="40" class={`${styles.componentBox} ${styles.rail} ${isRailError('vbat') ? styles.error : ''}`} />
+            <rect x="290" y="50" width="80" height="40" class={`${styles.componentBox} ${styles.rail} ${isRailError('vbat') ? styles.error : styles.active}`} />
             <text x="330" y="66" class={styles.componentText}>
               {formatVoltage(powerData()?.batteryVoltage)}
             </text>
             <text x="330" y="78" class={`${styles.componentText} ${styles.small}`}>
               {formatPower(powerData()?.batteryVoltage, powerData()?.rails?.I_Battery)}
             </text>
+            <rect x="293" y="53" width="74" height="35" class={`${styles.railColorOverlay} ${isRailError('vbat') ? styles.error : ''}`} style={{ stroke: getRailColor('vbat') }} />
 
             {/* +12V */}
-            <rect x="290" y="100" width="80" height="40" class={`${styles.componentBox} ${styles.rail} ${isRailError('12v') ? styles.error : ''}`} />
+            <rect x="290" y="100" width="80" height="40" class={`${styles.componentBox} ${styles.rail} ${isRailError('12v') ? styles.error : styles.active}`} />
             <text x="330" y="116" class={styles.componentText}>
               {formatVoltage(powerData()?.rails?.V_Rail_12V)}
             </text>
             <text x="330" y="128" class={`${styles.componentText} ${styles.small}`}>
               {formatPower(powerData()?.rails?.V_Rail_12V, powerData()?.rails?.I_Rail_12V)}
             </text>
+            <rect x="293" y="103" width="74" height="35" class={`${styles.railColorOverlay} ${isRailError('12v') ? styles.error : ''}`} style={{ stroke: getRailColor('12v') }} />
 
             {/* +5V */}
-            <rect x="290" y="150" width="80" height="40" class={`${styles.componentBox} ${styles.rail} ${isRailError('5v') ? styles.error : ''}`} />
+            <rect x="290" y="150" width="80" height="40" class={`${styles.componentBox} ${styles.rail} ${isRailError('5v') ? styles.error : styles.active}`} />
             <text x="330" y="166" class={styles.componentText}>
               {formatVoltage(powerData()?.rails?.V_Rail_5V)}
             </text>
             <text x="330" y="178" class={`${styles.componentText} ${styles.small}`}>
               {formatPower(powerData()?.rails?.V_Rail_5V, powerData()?.rails?.I_Rail_5V)}
             </text>
+            <rect x="293" y="153" width="74" height="35" class={`${styles.railColorOverlay} ${isRailError('5v') ? styles.error : ''}`} style={{ stroke: getRailColor('5v') }} />
 
             {/* +3V3 */}
-            <rect x="290" y="200" width="80" height="40" class={`${styles.componentBox} ${styles.rail} ${isRailError('3v3') ? styles.error : ''}`} />
+            <rect x="290" y="200" width="80" height="40" class={`${styles.componentBox} ${styles.rail} ${isRailError('3v3') ? styles.error : styles.active}`} />
             <text x="330" y="216" class={styles.componentText}>
               {formatVoltage(powerData()?.rails?.V_Rail_3V3)}
             </text>
             <text x="330" y="228" class={`${styles.componentText} ${styles.small}`}>
               {formatPower(powerData()?.rails?.V_Rail_3V3, powerData()?.rails?.I_Rail_3V3)}
             </text>
+            <rect x="293" y="203" width="74" height="35" class={`${styles.railColorOverlay} ${isRailError('3v3') ? styles.error : ''}`} style={{ stroke: getRailColor('3v3') }} />
 
             {/* Connection Lines */}
             {/* Battery to BMS - bi-directional */}

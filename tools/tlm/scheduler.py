@@ -14,7 +14,7 @@ from dummy_data import DummyDataSource
 from colors import Colors
 from packager import format_wire_message
 
-BATCH_INTERVAL_MS = 100
+BATCH_INTERVAL_MS = 200
 INTERMESSAGE_DELAY_MS = 1  # Delay between individual messages in a batch
 
 @dataclass
