@@ -3,6 +3,7 @@ import styles from './PowerPanel.module.css';
 import commonStyles from './shared/common.module.css';
 import { usePowerStatus } from '../hooks/useTelemetryState';
 import ValueDisplay from './shared/ValueDisplay';
+import Panel from './shared/Panel';
 import Plot from './Plot';
 
 function PowerPanel({ className }) {
@@ -216,21 +217,21 @@ function PowerPanel({ className }) {
   });
 
   return (
-    <div class={`${commonStyles.componentPanel} ${className || ''}`}>
-      <div class={commonStyles.componentHeader}>
-        <h3>Power Subsystem</h3>
-        <div class={commonStyles.headerStats}>
-          <div class={`${commonStyles.statBox} ${styles.chargeSource}`}>
-            <ValueDisplay
-              label="Source"
-              value={() => powerData()?.chargeSource || 'UNKNOWN'}
-              className={`${commonStyles.smallText} ${commonStyles.monospaceText}`}
-            />
-          </div>
+    <Panel
+      title="Power Subsystem"
+      className={className}
+      contentClass={styles.contentSection}
+      headerStats={
+        <div class={`${commonStyles.statBox} ${styles.chargeSource}`}>
+          <ValueDisplay
+            label="Source"
+            value={() => powerData()?.chargeSource || 'UNKNOWN'}
+            className={`${commonStyles.smallText} ${commonStyles.monospaceText}`}
+          />
         </div>
-      </div>
-      <div class={styles.contentSection}>
-        <div class={styles.diagramSection}>
+      }
+    >
+      <div class={styles.diagramSection}>
           <div class={styles.diagramContainer}>
             <svg class={styles.powerDiagram} viewBox="25 40 345 210" preserveAspectRatio="xMidYMid meet">
             {/* Arrow markers for power flow direction */}
@@ -410,8 +411,7 @@ function PowerPanel({ className }) {
           </div>
         </div>
          */}
-      </div>
-    </div>
+    </Panel>
   );
 }
 

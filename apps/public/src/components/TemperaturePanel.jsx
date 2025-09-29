@@ -3,6 +3,7 @@ import styles from './TemperaturePanel.module.css';
 import commonStyles from './shared/common.module.css';
 import { useTemperatureStatus } from '../hooks/useTelemetryState';
 import ValueDisplay from './shared/ValueDisplay';
+import Panel from './shared/Panel';
 
 function TemperaturePanel({ className }) {
   const temperatureData = useTemperatureStatus();
@@ -146,21 +147,20 @@ function TemperaturePanel({ className }) {
 
 
   return (
-    <div class={`${commonStyles.componentPanel} ${className || ''}`}>
-      <div class={commonStyles.componentHeader}>
-        <h3>Temperature Subsystem</h3>
-        <div class={commonStyles.headerStats}>
-          <div class={`${commonStyles.statBox} ${styles.tecMode}`}>
-            <ValueDisplay
-              label="Mode"
-              value={() => currentMode().mode}
-              className={`${commonStyles.smallText} ${commonStyles.monospaceText}`}
-            />
-          </div>
+    <Panel
+      title="Temperature Subsystem"
+      className={className}
+      contentClass={styles.contentSection}
+      headerStats={
+        <div class={`${commonStyles.statBox} ${styles.tecMode}`}>
+          <ValueDisplay
+            label="Mode"
+            value={() => currentMode().mode}
+            className={`${commonStyles.smallText} ${commonStyles.monospaceText}`}
+          />
         </div>
-      </div>
-
-      <div class={styles.contentSection}>
+      }
+    >
         {/* <div class={styles.valuesSection}>
           <div class={styles.valueGrid}>
             <div class={styles.valueItem}>
@@ -317,9 +317,8 @@ function TemperaturePanel({ className }) {
             <line x1="270" y1="45" x2="290" y2="45" class={`${temperatureData()?.fanPwm > 50 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
             <line x1="270" y1="55" x2="288" y2="55" class={`${temperatureData()?.fanPwm > 75 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
           </svg>
-      </div>
-      </div>
-    </div>
+        </div>
+    </Panel>
   );
 }
 

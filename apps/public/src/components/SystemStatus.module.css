@@ -9,7 +9,6 @@
   border: 1px solid var(--color-border);
   border-radius: var(--color-borderRadius);
   padding: 0.5rem;
-  transition: all 0.3s ease;
 }
 
 .systemCardError {

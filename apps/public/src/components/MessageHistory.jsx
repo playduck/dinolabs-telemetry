@@ -3,6 +3,7 @@ import styles from './MessageHistory.module.css';
 import { useTelemetrySubscription } from './shared/useTelemetrySubscription';
 import commonStyles from './shared/common.module.css';
 import ValueDisplay from './shared/ValueDisplay';
+import Panel from './shared/Panel';
 
 function MessageHistory({ className = '' }) {
   // Data rate bucketing (1-second buckets)
@@ -338,18 +339,17 @@ function MessageHistory({ className = '' }) {
   });
 
   return (
-    <div class={`${commonStyles.componentPanel} ${styles.dataFlowContainer} ${className}`}>
-      {/* Header */}
-      <div class={commonStyles.componentHeader}>
-        <h3>Data Flow Monitor</h3>
+    <Panel
+      title="Data Flow Monitor"
+      className={`${styles.dataFlowContainer} ${className}`}
+      contentClass={styles.mainContent}
+      headerStats={
         <div class={`${styles.healthIndicator} ${styles[connectionHealth()]}`}>
           <span class={styles.healthDot}></span>
           <span class={styles.healthText}>{connectionHealth().toUpperCase()}</span>
         </div>
-      </div>
-
-      {/* Main Content - Side by side layout */}
-      <div class={styles.mainContent}>
+      }
+    >
         {/* Left Column - Main Dashboard */}
         <div class={styles.leftColumn}>
           {/* Health Stats Row */}
@@ -479,8 +479,7 @@ function MessageHistory({ className = '' }) {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </Panel>
   );
 }
 

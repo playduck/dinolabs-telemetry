@@ -1,0 +1,76 @@
+/* Shared panel content styles */
+
+.panelContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Common content section patterns */
+.diagramSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  max-height: 100%;
+  height: 100%;
+}
+
+.diagramContainer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  max-height: 100%;
+}
+
+.valueGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.4rem;
+}
+
+.valueItem {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--color-borderRadius);
+  padding: 0.3rem;
+}
+
+/* Content layout variations */
+.contentSection {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  padding: 0.25rem;
+  gap: 0.25rem;
+  overflow: hidden;
+}
+
+.contentSection.grid {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: 100%;
+}
+
+.contentSection.center {
+  justify-content: center;
+  align-items: center;
+}
+
+.contentSection.column {
+  flex-direction: column;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px), (max-width: 900px) and (max-height: 700px) {
+  .contentSection.grid {
+    display: flex;
+    flex-direction: column;
+  }
+}
