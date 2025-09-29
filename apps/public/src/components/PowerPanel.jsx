@@ -285,7 +285,7 @@ function PowerPanel({ className }) {
 
             {/* BMS Central Block - Full height to match input/output stacks */}
             <rect x="160" y="50" width="80" height="190" class={`${styles.componentBox} ${styles.bms}`} />
-            <text x="200" y="140" class={styles.componentText}>PWRPCB</text>
+            <text x="200" y="140" class={styles.componentText}>BMS</text>
             <text x="200" y="158" class={`${styles.componentText} ${styles.small}`}>
               {powerData()?.status === 'OFFLINE' ? 'OFFLINE' : 'NOMINAL'}
             </text>

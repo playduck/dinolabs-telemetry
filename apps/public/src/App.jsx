@@ -7,6 +7,9 @@ import SystemCard from './components/SystemCard';
 import PowerPanel from './components/PowerPanel';
 import TemperaturePanel from './components/TemperaturePanel';
 import MessageHistory from './components/MessageHistory';
+import VisualizationPanel from './components/VisualizationPanel';
+import IMUPanel from './components/IMUPanel';
+import ExperimentPanel from './components/ExperimentPanel';
 import telemetryService from './services/TelemetryService';
 
 function AppContent() {
@@ -26,6 +29,9 @@ function AppContent() {
           <SystemCard type="POWER" className="power-grid-item" />
           <PowerPanel className="power-panel-grid-item" />
           <TemperaturePanel className="temperature-panel-grid-item" />
+          <VisualizationPanel className="visualization-panel-grid-item" />
+          <IMUPanel className="imu-panel-grid-item" />
+          <ExperimentPanel className="experiment-panel-grid-item" />
           <MessageHistory className="message-history-grid-item" />
         </div>
       </div>

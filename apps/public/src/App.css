@@ -44,7 +44,7 @@
   grid-template-rows: auto repeat(6, minmax(0, 1fr));
   gap: 0.5rem;
   padding: 0.5rem;
-  height: calc(100vh - var(--header-height, 60px) - var(--footer-height, 60px));
+  height: calc(100vh - var(--header-height, 60px) - var(--footer-height, 50px));
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -72,12 +72,27 @@
 
 .power-panel-grid-item {
   grid-column: 1 / 7;
-  grid-row: 6 / 8;
+  grid-row: 5 / 8;
 }
 
 .temperature-panel-grid-item {
   grid-column: 7 / 13;
   grid-row: 6 / 8;
+}
+
+.visualization-panel-grid-item {
+  grid-column: 1 / 7;
+  grid-row: 2 / 5;
+}
+
+.imu-panel-grid-item {
+  grid-column: 19 / 25;
+  grid-row: 2 / 6;
+}
+
+.experiment-panel-grid-item {
+  grid-column: 7 / 19;
+  grid-row: 2 / 6;
 }
 
 .message-history-grid-item {
@@ -110,6 +125,24 @@
     flex: 1 1 auto;
     /* min-height: 300px; */
     /* max-height: 500px; */
+  }
+
+  .visualization-panel-grid-item {
+    flex: 1 1 auto;
+    min-height: 300px;
+    max-height: 500px;
+  }
+
+  .imu-panel-grid-item {
+    flex: 1 1 auto;
+    min-height: 300px;
+    max-height: 500px;
+  }
+
+  .experiment-panel-grid-item {
+    flex: 1 1 auto;
+    min-height: 300px;
+    max-height: 500px;
   }
 
   .message-history-grid-item {

@@ -224,8 +224,8 @@ function TemperaturePanel({ className }) {
         </div>
       </div> */}
 
-      <div class={styles.diagramSection}>
-          <svg class={styles.temperatureDiagram} viewBox="60 0 330 250" preserveAspectRatio="xMidYMid meet">
+      {/* <div class={styles.diagramSection}> */}
+          <svg class={styles.temperatureDiagram} viewBox="60 0 330 220" preserveAspectRatio="xMidYMid meet">
             {/* Define gradients for temperature visualization */}
             <defs>
               <linearGradient id="coldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -239,7 +239,7 @@ function TemperaturePanel({ className }) {
               <linearGradient id="tecGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" class={styles.tecGradientHot} />
                 <stop offset="50%" class={styles.tecGradientMid} />
-                <stop offset="100%" class={styles.tecGradientCold} />
+                <stop offset="100%" class={`${styles.tecGradientCold} ${getColdSideStatus() === 'nominal' ? styles.nominal : getColdSideStatus() === 'cold' ? styles.cold : getColdSideStatus() === 'hot' ? styles.hot : styles.offline}`} />
               </linearGradient>
             </defs>
 
@@ -278,16 +278,16 @@ function TemperaturePanel({ className }) {
             <text x="100" y="40" class={`${styles.componentText} ${styles.fanText}`}>Fan {formatPwm(temperatureData()?.fanPwm)}%</text>
 
             {/* Hotside Heatsink - Top */}
-            <rect x="80" y="70" width="290" height="30"
+            <rect x="60" y="70" width="330" height="30"
                   class={`${styles.componentBox} ${styles.hotside}`}
-                  fill="url(#hotGradient)" />
-            <text x="95" y="90" class={`${styles.componentText} ${styles.darkText}`}>Hotside Heatsink</text>
-            <text x="355" y="92" class={`${styles.componentText} ${styles.value} ${styles.darkText} ${styles.rightAlign}`}>
+                  stroke="url(#hotGradient)" />
+            <text x="95" y="90" class={`${styles.componentText}`}>Hotside Heatsink</text>
+            <text x="355" y="92" class={`${styles.componentText} ${styles.value} ${styles.rightAlign}`}>
               {formatTemperature(temperatureData()?.hotSideTemp)}°C
             </text>
 
             {/* TEC Module - Center */}
-            <rect x="120" y="120" width="210" height="40"
+            <rect x="120" y="110" width="210" height="60"
                   class={`${styles.componentBox} ${styles.tec} ${getTecPowerStatus() === 'high' ? styles.high : getTecPowerStatus() === 'medium' ? styles.medium : getTecPowerStatus() === 'low' ? styles.low : styles.idle}`}
                   fill="url(#tecGradient)" />
             <text x="225" y="137" class={`${styles.componentText} ${styles.center} ${styles.darkText}`}>TEC Module</text>
@@ -296,11 +296,11 @@ function TemperaturePanel({ className }) {
             </text>
 
             {/* Coldside Heatspreader - Bottom */}
-            <rect x="100" y="180" width="250" height="30"
+            <rect x="80" y="180" width="290" height="30"
                   class={`${styles.componentBox} ${styles.coldside} ${getColdSideStatus() === 'nominal' ? styles.nominal : getColdSideStatus() === 'cold' ? styles.cold : getColdSideStatus() === 'hot' ? styles.hot : styles.offline}`}
-                  fill="url(#coldGradient)" />
-            <text x="115" y="201" class={`${styles.componentText} ${styles.darkText}`}>Controlside</text>
-            <text x="335" y="201" class={`${styles.componentText} ${styles.value} ${styles.darkText} ${styles.rightAlign}`}>
+                  stroke="url(#coldGradient)" />
+            <text x="115" y="201" class={`${styles.componentText}`}>Controlside</text>
+            <text x="335" y="201" class={`${styles.componentText} ${styles.value} ${styles.rightAlign}`}>
               {formatTemperature(temperatureData()?.coldSideTemp)}°C
             </text>
 
@@ -310,14 +310,13 @@ function TemperaturePanel({ className }) {
                 <polygon points="0 0, 8 3, 0 6" fill="var(--color-text)" />
               </marker>
             </defs>
-
             <line x1="270" y1="15" x2="288" y2="15" class={`${temperatureData()?.fanPwm > 75 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
             <line x1="270" y1="25" x2="290" y2="25" class={`${temperatureData()?.fanPwm > 50 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
             <line x1="270" y1="35" x2="292" y2="35" class={`${temperatureData()?.fanPwm > 10 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
             <line x1="270" y1="45" x2="290" y2="45" class={`${temperatureData()?.fanPwm > 50 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
             <line x1="270" y1="55" x2="288" y2="55" class={`${temperatureData()?.fanPwm > 75 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
           </svg>
-        </div>
+        {/* </div> */}
     </Panel>
   );
 }

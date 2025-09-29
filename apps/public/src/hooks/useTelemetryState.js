@@ -68,3 +68,7 @@ export function usePowerStatus() {
 export function useCoolingStatus() {
   return useSystemState('COOLING');
 }
+
+export function useIMUStatus() {
+  return useSystemState('IMU');
+}

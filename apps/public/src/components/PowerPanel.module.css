@@ -79,7 +79,7 @@
 
 /* SVG Elements */
 .componentBox {
-  fill: var(--color-surface);
+  fill: var(--color-surfaceSecondary);
   stroke: var(--color-text);
   stroke-width: 1;
   rx: 0;
@@ -87,34 +87,34 @@
 }
 
 .componentBox.battery {
-  fill: var(--color-surface);
+  fill: var(--color-surfaceSecondary);
   stroke: var(--color-text);
   stroke-width: 1;
 }
 
 .componentBox.bms {
-  fill: var(--color-surface);
+  fill: var(--color-surfaceSecondary);
   stroke: var(--color-text);
 }
 
 .componentBox.rail {
-  fill: var(--color-surface);
+  fill: var(--color-surfaceSecondary);
   stroke: var(--color-warrGreen);
 }
 
 .componentBox.disconnected {
-  fill: var(--color-surfaceSecondary);
+  fill: var(--color-suface);
   stroke: var(--color-textSecondary);
   opacity: 0.6;
 }
 
 .componentBox.active {
-  fill: var(--color-surface);
+  fill: var(--color-surfaceSecondary);
   stroke: var(--color-warrGreen);
 }
 
 .componentBox.error {
-  fill: var(--color-surface);
+  fill: var(--color-surfaceSecondary);
   stroke: var(--color-warrRed);
   stroke-width: 5;
 }

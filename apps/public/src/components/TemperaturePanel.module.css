@@ -75,30 +75,34 @@
   text-anchor: end;
 }
 
+.coldside, .hotside, .tec, .fan {
+  transition: all 0.3s ease;
+  stroke-width: 2;
+}
+
+.coldside, .hotside {
+  fill: var(--color-surfaceSecondary);
+}
+
 /* Temperature component status styles */
 .coldside.nominal {
-  fill: var(--color-warrGreen);
   stroke: var(--color-warrGreen);
 }
 
 .coldside.cold {
-  fill: #00bfff;
-  stroke: #0080ff;
+  stroke: var(--color-warrBlue1);
 }
 
 .coldside.hot {
-  fill: var(--color-warrYellow);
   stroke: var(--color-warrYellow);
 }
 
 .coldside.offline {
-  fill: var(--color-textSecondary);
   stroke: var(--color-textSecondary);
   opacity: 0.5;
 }
 
 .tec {
-  stroke: var(--color-text);
   stroke-width: 2;
 }
 
@@ -107,20 +111,19 @@
 }
 
 .tec.low {
-  filter: drop-shadow(0 0 3px var(--color-warrBlue1));
+  /* filter: drop-shadow(0 0 3px var(--color-warrBlue1)); */
 }
 
 .tec.medium {
-  filter: drop-shadow(0 0 5px var(--color-warrYellow));
+  /* filter: drop-shadow(0 0 5px var(--color-warrYellow)); */
 }
 
 .tec.high {
-  filter: drop-shadow(0 0 8px var(--color-warrRed));
+  /* filter: drop-shadow(0 0 8px var(--color-warrRed)); */
 }
 
 .hotside {
-  stroke: var(--color-border);
-  stroke-width: 1;
+  stroke: var(--color-warrYellow);
 }
 
 .fan {
@@ -178,11 +181,11 @@
 }
 
 .coldSideTemp.cold {
-  border-color: #00bfff;
+  border-color: var(--color-warrBlue2);
 }
 
 .coldSideTemp.hot {
-  border-color: var(--color-warrYellow);
+  border-color: var(--color-warrRed);
 }
 
 .coldSideTemp.error {
@@ -198,12 +201,12 @@
 }
 
 .tecMode.unknown {
-  border-color: var(--color-textSecondary);
+  border-color: var(--color-warrRed);
 }
 
 /* Animation for active components */
 .tec.high {
-  animation: tecPulse 2s infinite;
+  /* animation: tecPulse 1s infinite; */
 }
 
 @keyframes tecPulse {
@@ -222,12 +225,12 @@
 }
 
 .coldGradientEnd {
-  stop-color: var(--color-info);
+  stop-color: var(--color-warrBlue2);
   stop-opacity: 1;
 }
 
 .hotGradientStart {
-  stop-color: var(--color-warrYellow);
+  stop-color: var(--color-warrRed);
   stop-opacity: 1;
 }
 
@@ -247,22 +250,18 @@
 }
 
 .tecGradientCold {
-  stop-color: var(--color-warrBlue1);
+  stop-color: var(--color-textSecondary);
   stop-opacity: 1;
 }
 
-/* Fan animation when active - disable for now since it's causing issues */
-.fan.active {
-  /* animation: fanSpin 1s linear infinite; */
-  opacity: 0.9;
+.tecGradientCold.nominal {
+  stop-color: var(--color-warrGreen);
 }
 
-/* Remove broken animation
-@keyframes fanSpin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-} */
+.tecGradientCold.cold {
+  stop-color: var(--color-warrBlue1);
+}
+
+.tecGradientCold.hot {
+  stop-color: var(--color-warrYellow);
+}

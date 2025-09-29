@@ -46,7 +46,7 @@ class TelemetryService {
         this.socket.on('message', (data) => {
           try {
             const parsedData = JSON.parse(data);
-            console.log(parsedData)
+            // console.log(parsedData)
             this.notifySubscribers('message', parsedData);
           } catch (error) {
             console.error('Failed to parse telemetry message:', error);

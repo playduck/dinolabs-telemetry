@@ -396,6 +396,34 @@ function MessageHistory({ className = '' }) {
           <div class={styles.chartSection}>
             <div class={styles.miniChart}>
               <svg viewBox="0 0 400 100" class={styles.chartSvg}>
+                {
+                  // Background y grid lines
+                  [0, 20, 40, 60, 80, 100].map(y => (
+                    <line
+                      key={`grid-${y}`}
+                      x1="0"
+                      y1={y}
+                      x2="400"
+                      y2={y}
+                      stroke="var(--color-border)"
+                      stroke-width="1"
+                    />
+                  ))
+                }
+                {
+                  // Background x grid lines
+                  [10, 20, 30, 40].map(x => (
+                    <line
+                      key={`grid-x-${x}`}
+                      x1={x * 8}
+                      y1="0"
+                      x2={x * 8}
+                      y2="100"
+                      stroke="var(--color-border)"
+                      stroke-width="1"
+                    />
+                  ))
+                }
                 {getMiniChartData().map((bucket, index) => {
                   const maxRate = getMaxRate();
                   let height, fill, opacity;

@@ -94,9 +94,9 @@
   flex-shrink: 0;
 }
 
-.componentHeader h3 {
+/* .componentHeader h3 {
   color: var(--color-secondary);
-}
+} */
 
 .headerStats {
   display: flex;
