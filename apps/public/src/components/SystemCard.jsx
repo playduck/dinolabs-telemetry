@@ -64,7 +64,7 @@ function SystemCard({ type, className = '' }) {
               <div class={styles.chambersContainer}>
                 <label>Chambers</label>
                 <div class={styles.chambers}>
-                  {renderExperimentChambers(systemData().EXPERIMENT.chambers)}
+                  {renderExperimentChambers(systemData().SYSTEM.ledStates)}
                 </div>
               </div>
             </div>

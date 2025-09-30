@@ -412,7 +412,7 @@ function MessageHistory({ className = '' }) {
                 }
                 {
                   // Background x grid lines
-                  [10, 20, 30, 40].map(x => (
+                  [0, 10, 20, 30, 40, 50].map(x => (
                     <line
                       key={`grid-x-${x}`}
                       x1={x * 8}

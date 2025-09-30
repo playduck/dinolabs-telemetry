@@ -1,5 +1,6 @@
-import { BsDisplay, BsSun, BsMoon, BsRocketTakeoff } from 'solid-icons/bs';
-import { BsDisplayFill, BsSunFill, BsMoonFill, BsRocketTakeoffFill } from 'solid-icons/bs';
+import { BsDisplay, BsSun, BsMoon, BsRocketTakeoff, BsLightning, BsCpu, BsTree, BsSunset, BsMusicNoteBeamed } from 'solid-icons/bs';
+import { BsDisplayFill, BsSunFill, BsMoonFill, BsRocketTakeoffFill, BsLightningFill, BsCpuFill, BsTreeFill, BsSunsetFill } from 'solid-icons/bs';
+
 import { useTheme } from '../contexts/ThemeContext';
 import { createSignal, onMount, onCleanup } from 'solid-js';
 import styles from './Footer.module.css';
@@ -45,23 +46,35 @@ function Footer() {
     }
   });
 
-  const getThemeIcon = (themeName, active) => {
-    if(!active) {
-      switch (themeName) {
-        case 'system': return () => <BsDisplayFill size={20} />;
-        case 'light': return () => <BsSunFill size={20} />;
-        case 'dark': return () => <BsMoonFill size={20} />;
-        case 'space': return () => <BsRocketTakeoffFill size={20} />;
-      }
-    } else {
-      switch (themeName) {
-        case 'system': return () => <BsDisplay size={20} />;
-        case 'light': return () => <BsSun size={20} />;
-        case 'dark': return () => <BsMoon size={20} />;
-        case 'space': return () => <BsRocketTakeoff size={20} />;
-      }
+const getThemeIcon = (themeName, active) => {
+  if(!active) {
+    switch (themeName) {
+      case 'system': return () => <BsDisplayFill size={20} />;
+      case 'light': return () => <BsSunFill size={20} />;
+      case 'dark': return () => <BsMoonFill size={20} />;
+      case 'space': return () => <BsRocketTakeoffFill size={20} />;
+      case 'neon': return () => <BsLightningFill size={20} />;
+      case 'cyberpunk': return () => <BsCpuFill size={20} />;
+      case 'forest': return () => <BsTreeFill size={20} />;
+      case 'sunset': return () => <BsSunsetFill size={20} />;
+      case 'synthwave': return () => <BsMusicNoteBeamed size={20} />;
+      default: return () => <BsDisplayFill size={20} />;
     }
-  };
+  } else {
+    switch (themeName) {
+      case 'system': return () => <BsDisplay size={20} />;
+      case 'light': return () => <BsSun size={20} />;
+      case 'dark': return () => <BsMoon size={20} />;
+      case 'space': return () => <BsRocketTakeoff size={20} />;
+      case 'neon': return () => <BsLightning size={20} />;
+      case 'cyberpunk': return () => <BsCpu size={20} />;
+      case 'forest': return () => <BsTree size={20} />;
+      case 'sunset': return () => <BsSunset size={20} />;
+      case 'synthwave': return () => <BsMusicNoteBeamed size={20} />;
+      default: return () => <BsDisplay size={20} />;
+    }
+  }
+};
 
   return (
     <footer class={styles.footer}>

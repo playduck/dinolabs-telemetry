@@ -184,8 +184,9 @@ class SysMessage {
         {name: 'storage_capacity', width: 7, multiplier: 1.28, unit: '%'},
         {name: 'soc', width: 7, multiplier: 1.28, unit: '%'},
         {name: 'ext_fan_pwm', width: 8, multiplier: 1.0, unit: ''},
-        {name: 'epoch', width: 19, multiplier: 1.0, unit: 's'},
+        {name: 'epoch', width: 13, multiplier: 1.0, unit: 's'},
         {name: 'charge_voltage', width: 8, multiplier: 6.0, unit: 'V'},
+        {name: 'led_states', width: 6, multiplier: 1.0, unit: ''},
         {name: 'status_byte', width: 8, multiplier: 1.0, unit: ''}
     ]);
 
@@ -283,8 +284,8 @@ class ExpImuMessage {
         {name: 'mag_x', width: 10, multiplier: 1.0, unit: 'mT'},
         {name: 'mag_y', width: 10, multiplier: 1.0, unit: 'mT'},
         {name: 'mag_z', width: 10, multiplier: 1.0, unit: 'mT'},
-        {name: 'led_states', width: 2, multiplier: 1.0, unit: ''},
-        {name: 'hi_lo_g_flag', width: 1, multiplier: 1.0, unit: ''}
+        {name: 'hi_lo_g_flag', width: 1, multiplier: 1.0, unit: ''},
+        {name: 'reserved', width: 3, multiplier: 1.0, unit: ''}
     ]);
 
     constructor(data) {

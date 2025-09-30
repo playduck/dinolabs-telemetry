@@ -1,13 +1,14 @@
 import { createSignal, createEffect } from 'solid-js';
 import styles from './PowerPanel.module.css';
 import commonStyles from './shared/common.module.css';
-import { usePowerStatus } from '../hooks/useTelemetryState';
+import { usePowerStatus, useTimestampsState } from '../hooks/useTelemetryState';
 import ValueDisplay from './shared/ValueDisplay';
 import Panel from './shared/Panel';
 import Plot from './Plot';
 
 function PowerPanel({ className }) {
   const powerData = usePowerStatus();
+  const timestamps = useTimestampsState();
   const [voltageePlotRef, setVoltagePlotRef] = createSignal(null);
   const [currentPlotRef, setCurrentPlotRef] = createSignal(null);
   const [lastProcessedData, setLastProcessedData] = createSignal(null);
@@ -179,13 +180,15 @@ function PowerPanel({ className }) {
   // Real-time data updates with deduplication
   createEffect(() => {
     const data = powerData();
+    const ts = timestamps();
     const voltageRef = voltageePlotRef();
     const currentRef = currentPlotRef();
     const lastData = lastProcessedData();
 
-    // Only process data if it has meaningfully changed
-    if (data && hasDataChanged(data, lastData)) {
-      const timestamp = Date.now() / 1000;
+    // Only process data if it has meaningfully changed and we have a timestamp
+    if (data && ts && ts.messageTimestamp && hasDataChanged(data, lastData)) {
+      // Use server timestamp (when data was received) in seconds, not client time
+      const timestamp = ts.messageTimestamp / 1000;
 
       // Update voltage plot (smart unit detection)
       if (voltageRef && voltageRef.addDataPoint) {

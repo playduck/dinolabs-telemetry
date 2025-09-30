@@ -70,5 +70,5 @@ export function useCoolingStatus() {
 }
 
 export function useIMUStatus() {
-  return useSystemState('IMU');
+  return useTelemetryState(state => state.systems.EXPERIMENT?.imu);
 }

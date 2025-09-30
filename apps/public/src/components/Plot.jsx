@@ -93,7 +93,6 @@ function Plot(props) {
     }
 
     setData([timePoints, values]);
-    console.log(`Plot ${props.title}: Initialized with sample data`, [timePoints, values]);
   });
 
   const addDataPoint = (timestamp, ...values) => {
@@ -101,7 +100,6 @@ function Plot(props) {
 
     if (props.multiSeries) {
       // Handle multiple values for multi-series plots
-      console.log(`Plot ${props.title}: Adding multi-series data point`, { timestamp, values });
       setData(currentData => {
         const newData = currentData.map((series, idx) => {
           const newSeries = [...series];
@@ -124,7 +122,6 @@ function Plot(props) {
     } else {
       // Single-series plot (backward compatibility)
       const value = values[0];
-      console.log(`Plot ${props.title}: Adding single-series data point`, { timestamp, value });
       setData(currentData => {
         const [times, seriesValues] = currentData;
         const newTimes = [...times, timestamp];
@@ -136,7 +133,6 @@ function Plot(props) {
           newValues.splice(0, newValues.length - maxPoints);
         }
 
-        console.log(`Plot ${props.title}: Updated data points: ${newTimes.length}`);
         return [newTimes, newValues];
       });
     }
@@ -255,6 +251,14 @@ function Plot(props) {
     ];
   });
 
+  // Create reactive bands configuration
+  const bands = createMemo(() => {
+    if (props.bands) {
+      return props.bands;
+    }
+    return undefined;
+  });
+
   return (
     <div
       ref={setContainerRef}
@@ -287,6 +291,7 @@ function Plot(props) {
             y: { auto: true }
           }}
           axes={axes()}
+          bands={bands()}
           cursor={{
             show: true,
             x: true,

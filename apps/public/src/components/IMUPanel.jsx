@@ -1,77 +1,81 @@
 import { createSignal, createEffect } from 'solid-js';
 import styles from './IMUPanel.module.css';
-import { useIMUStatus } from '../hooks/useTelemetryState';
+import { useIMUStatus, useTimestampsState } from '../hooks/useTelemetryState';
+import { useTheme } from '../contexts/ThemeContext';
 import Panel from './shared/Panel';
 import Plot from './Plot';
 
 function IMUPanel({ className }) {
   const imuData = useIMUStatus();
+  const timestamps = useTimestampsState();
+  const { theme } = useTheme();
   const [accelPlotRef, setAccelPlotRef] = createSignal(null);
-  const [gyroPlotRef, setGyroPlotRef] = createSignal(null);
   const [magPlotRef, setMagPlotRef] = createSignal(null);
 
-  // Color scheme for X, Y, Z axes
-  const axisColors = {
-    x: '#ff4444',  // Red
-    y: '#44ff44',  // Green
-    z: '#4444ff'   // Blue
-  };
+  // Color scheme for X, Y, Z axes using theme colors
+  const axisColors = () => ({
+    x: theme().colors.warrRed,     // Red
+    y: theme().colors.warrGreen,   // Green
+    z: theme().colors.warrBlue1    // Blue
+  });
 
   // Accelerometer plot configuration
-  const accelSeries = [
-    {}, // Time axis
-    { label: "X", stroke: axisColors.x, width: 2 },
-    { label: "Y", stroke: axisColors.y, width: 2 },
-    { label: "Z", stroke: axisColors.z, width: 2 }
-  ];
-
-  // Gyroscope plot configuration
-  const gyroSeries = [
-    {}, // Time axis
-    { label: "X", stroke: axisColors.x, width: 2 },
-    { label: "Y", stroke: axisColors.y, width: 2 },
-    { label: "Z", stroke: axisColors.z, width: 2 }
-  ];
+  const accelSeries = () => {
+    const colors = axisColors();
+    return [
+      {}, // Time axis
+      { label: "X", stroke: colors.x, width: 2 },
+      { label: "Y", stroke: colors.y, width: 2 },
+      { label: "Z", stroke: colors.z, width: 2 }
+    ];
+  };
 
   // Magnetometer plot configuration
-  const magSeries = [
-    {}, // Time axis
-    { label: "X", stroke: axisColors.x, width: 2 },
-    { label: "Y", stroke: axisColors.y, width: 2 },
-    { label: "Z", stroke: axisColors.z, width: 2 }
-  ];
+  const magSeries = () => {
+    const colors = axisColors();
+    return [
+      {}, // Time axis
+      { label: "X", stroke: colors.x, width: 2 },
+      { label: "Y", stroke: colors.y, width: 2 },
+      { label: "Z", stroke: colors.z, width: 2 }
+    ];
+  };
 
   // Common axes configuration for all plots
-  const createAxes = (unit) => [
-    {
-      show: true,
-      stroke: 'transparent',
-      grid: { show: true },
-      ticks: { show: true },
-      size: 0
-    },
-    {
-      show: true,
-      values: (_, vals) => vals.map(v => v.toFixed(1) + unit),
-      stroke: "#ffffff",
-      grid: { show: true, stroke: "#444444" },
-      ticks: { show: true, stroke: "#ffffff" },
-      size: 60,
-      gap: 8,
-      labelSize: 12,
-      font: "12px system-ui"
-    }
-  ];
+  const createAxes = (unit) => {
+    const colors = theme().colors;
+    return [
+      {
+        show: true,
+        stroke: 'transparent',
+        grid: { show: true },
+        ticks: { show: true },
+        size: 0
+      },
+      {
+        show: true,
+        values: (_, vals) => vals.map(v => v.toFixed(1) + unit),
+        stroke: colors.text,
+        grid: { show: true, stroke: colors.grid },
+        ticks: { show: true, stroke: colors.text },
+        size: 60,
+        gap: 8,
+        labelSize: 12,
+        font: "12px system-ui"
+      }
+    ];
+  };
 
   // Real-time data updates
   createEffect(() => {
     const data = imuData();
+    const ts = timestamps();
     const accelRef = accelPlotRef();
-    const gyroRef = gyroPlotRef();
     const magRef = magPlotRef();
 
-    if (data) {
-      const timestamp = Date.now() / 1000;
+    if (data && ts && ts.messageTimestamp) {
+      // Use server timestamp (when data was received) in seconds, not client time
+      const timestamp = ts.messageTimestamp / 1000;
 
       // Update accelerometer plot
       if (accelRef && accelRef.addDataPoint && data.accelerometer) {
@@ -80,16 +84,6 @@ function IMUPanel({ className }) {
           data.accelerometer.x,
           data.accelerometer.y,
           data.accelerometer.z
-        );
-      }
-
-      // Update gyroscope plot
-      if (gyroRef && gyroRef.addDataPoint && data.gyroscope) {
-        gyroRef.addDataPoint(
-          timestamp,
-          data.gyroscope.x,
-          data.gyroscope.y,
-          data.gyroscope.z
         );
       }
 
@@ -113,51 +107,34 @@ function IMUPanel({ className }) {
     >
       <div class={styles.plotsContainer}>
         <div class={styles.plotSection}>
-          <h4 class={styles.plotTitle}>Accelerometer (m/s²)</h4>
+          <h4 class={styles.plotTitle}>Accelerometer (g)</h4>
           <div class={styles.plotWrapper}>
             <Plot
               multiSeries={true}
-              series={accelSeries}
+              series={accelSeries()}
               axes={createAxes("")}
               scales={{
                 x: { time: true },
                 y: { auto: true }
               }}
-              maxPoints={50}
+              maxPoints={200}
               ref={setAccelPlotRef}
             />
           </div>
         </div>
 
         <div class={styles.plotSection}>
-          <h4 class={styles.plotTitle}>Gyroscope (rad/s)</h4>
+          <h4 class={styles.plotTitle}>Magnetometer (Gauss)</h4>
           <div class={styles.plotWrapper}>
             <Plot
               multiSeries={true}
-              series={gyroSeries}
+              series={magSeries()}
               axes={createAxes("")}
               scales={{
                 x: { time: true },
                 y: { auto: true }
               }}
-              maxPoints={50}
-              ref={setGyroPlotRef}
-            />
-          </div>
-        </div>
-
-        <div class={styles.plotSection}>
-          <h4 class={styles.plotTitle}>Magnetometer (µT)</h4>
-          <div class={styles.plotWrapper}>
-            <Plot
-              multiSeries={true}
-              series={magSeries}
-              axes={createAxes("")}
-              scales={{
-                x: { time: true },
-                y: { auto: true }
-              }}
-              maxPoints={50}
+              maxPoints={200}
               ref={setMagPlotRef}
             />
           </div>

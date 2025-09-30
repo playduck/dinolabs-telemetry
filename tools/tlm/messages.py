@@ -269,8 +269,9 @@ class SysMessage:
     storage_capacity: int   # 7 bits
     soc: int               # 7 bits
     ext_fan_pwm: int     # 8 bits
-    epoch: int             # 19 bits
-    charge_voltage: int     # 6 bits
+    epoch: int             # 13 bits
+    charge_voltage: int     # 8 bits
+    led_states: int         # 6 bits
     status_byte: int        # 8 bits
 
     interval_ms = SLOW_INTERVAL
@@ -280,8 +281,9 @@ class SysMessage:
         ('storage_capacity', 7, 1.28, '%'),      # 100% → 128 (percentage)
         ('soc', 7, 1.28, '%'),                   # 100% → 128 (percentage)
         ('ext_fan_pwm', 8, 1.0, ''),             # 100% -> 255 (PWM Code)
-        ('epoch', 19, 1.0, 's'),                 # Direct timestamp
+        ('epoch', 13, 1.0, 's'),                 # Direct timestamp (13 bits)
         ('charge_voltage', 8, 6.0, 'V'),         # 36V → 216 (Voltage)
+        ('led_states', 6, 1.0, ''),              # LED states (6 bits, one per chamber)
         ('status_byte', 8, 1.0, '')              # Raw status value
     ])
 
@@ -296,7 +298,7 @@ class SysMessage:
     @classmethod
     def from_real_values(cls, cpu_load: float, storage_capacity: float, soc: float,
                         ext_fan_pwm: float, epoch: int, charge_voltage: float,
-                        status_byte: int = 0) -> 'SysMessage':
+                        led_states: int = 0, status_byte: int = 0) -> 'SysMessage':
         """Create SysMessage from real-world values."""
         raw_data = cls._bitfield.pack_real_values(
             cpu_load=cpu_load,
@@ -305,6 +307,7 @@ class SysMessage:
             ext_fan_pwm=ext_fan_pwm,
             epoch=epoch,
             charge_voltage=charge_voltage,
+            led_states=led_states,
             status_byte=status_byte
         )
         return cls.unpack_data(raw_data)
@@ -318,7 +321,7 @@ class SysMessage:
         print(f"    CPU load: {self._bitfield.display_value('cpu_load', self.cpu_load)}, Storage: {self._bitfield.display_value('storage_capacity', self.storage_capacity)}")
         print(f"    SOC: {self._bitfield.display_value('soc', self.soc)}, Ext fan: {self._bitfield.display_value('ext_fan_pwm', self.ext_fan_pwm)}")
         print(f"    Epoch: {self._bitfield.display_value('epoch', self.epoch)}, Charge V: {self._bitfield.display_value('charge_voltage', self.charge_voltage)}")
-        print(f"    Status: {self._bitfield.display_value('status_byte', self.status_byte)}")
+        print(f"    LED states: {self.led_states:06b}, Status: {self._bitfield.display_value('status_byte', self.status_byte)}")
 
 
 # Simple message classes for experiments (no formatting needed)
@@ -400,8 +403,8 @@ class ExpImuMessage:
     mag_x: int              # 10 bits
     mag_y: int              # 10 bits
     mag_z: int              # 10 bits
-    led_states: int         # 2 bits
     hi_lo_g_flag: int       # 1 bit
+    reserved: int           # 3 bits
 
     interval_ms = FAST_INTERVAL
 
@@ -412,8 +415,8 @@ class ExpImuMessage:
         ('mag_x', 10, 1.0, 'mT'),
         ('mag_y', 10, 1.0, 'mT'),
         ('mag_z', 10, 1.0, 'mT'),
-        ('led_states', 2, 1.0, ''),
-        ('hi_lo_g_flag', 1, 1.0, '')
+        ('hi_lo_g_flag', 1, 1.0, ''),
+        ('reserved', 3, 1.0, '')
     ])
 
     def pack_data(self) -> bytes:
@@ -428,7 +431,7 @@ class ExpImuMessage:
         """Display the parsed values from this message."""
         print(f"    Accelerometer: X={self._bitfield.display_value('acc_x_max', self.acc_x_max)}, Y={self._bitfield.display_value('acc_y_max', self.acc_y_max)}, Z={self._bitfield.display_value('acc_z_max', self.acc_z_max)}")
         print(f"    Magnetometer:  X={self._bitfield.display_value('mag_x', self.mag_x)}, Y={self._bitfield.display_value('mag_y', self.mag_y)}, Z={self._bitfield.display_value('mag_z', self.mag_z)}")
-        print(f"    LED States:    {self._bitfield.display_value('led_states', self.led_states)}, Hi/Lo G: {self._bitfield.display_value('hi_lo_g_flag', self.hi_lo_g_flag)}")
+        print(f"    Hi/Lo G: {self._bitfield.display_value('hi_lo_g_flag', self.hi_lo_g_flag)}")
 
 
 @dataclass

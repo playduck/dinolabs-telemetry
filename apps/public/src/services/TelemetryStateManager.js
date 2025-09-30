@@ -26,11 +26,11 @@ class TelemetryStateManager {
           epoch: null,
           extFanPwm: null,
           chargeVoltage: null,
+          ledStates: [false, false, false, false, false, false],
           fcsState: null
         },
         EXPERIMENT: {
           status: 'OFFLINE',
-          chambers: [false, false, false, false, false, false],
           channels: {}, // EXP1/EXP2 channel data
           imu: null // EXP_IMU data
         },
@@ -67,7 +67,8 @@ class TelemetryStateManager {
         lastSystemMessage: null,
         lastPowerMessage: null,
         lastCoolingMessage: null,
-        lastExperimentMessage: null
+        lastExperimentMessage: null,
+        messageTimestamp: null  // Server timestamp for current message (for plotting)
       }
     });
 
@@ -124,23 +125,6 @@ class TelemetryStateManager {
           };
         }
       });
-
-      // Handle status flags from legacy SystemStatus messages
-      if (processedData.statusFlags) {
-        // Update subsystem statuses based on status flags
-        newState.systems.EXPERIMENT = {
-          ...newState.systems.EXPERIMENT,
-          status: processedData.statusFlags.expOffline ? 'OFFLINE' : newState.systems.EXPERIMENT.status
-        };
-        newState.systems.TEMPERATURE = {
-          ...newState.systems.TEMPERATURE,
-          status: processedData.statusFlags.tempOffline ? 'OFFLINE' : newState.systems.TEMPERATURE.status
-        };
-        newState.systems.POWER = {
-          ...newState.systems.POWER,
-          status: processedData.statusFlags.powerOffline ? 'OFFLINE' : newState.systems.POWER.status
-        };
-      }
 
       // Calculate and merge derived values
       const derivedValues = calculateDerivedValues(data, prevState.derived);

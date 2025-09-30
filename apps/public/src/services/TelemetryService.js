@@ -63,17 +63,6 @@ class TelemetryService {
             const receiveTime = Date.now();
             const delta = receiveTime - this.heartbeatRequestTime;
 
-            // Validate RTT - must be positive and reasonable (< 10 seconds)
-            // if (delta < 0) {
-            //   console.warn(`Invalid negative RTT: ${delta}ms - skipping sample`);
-            //   return;
-            // }
-
-            // if (delta > 10000) {
-            //   console.warn(`Suspiciously high RTT: ${delta}ms - skipping sample`);
-            //   return;
-            // }
-
             // Update internal RTT with lowpass filter
             if (this.internalRtt !== null) {
               // Simple 1 pole lowpass filter

@@ -1,12 +1,13 @@
 import { createSignal, onMount, onCleanup, createEffect, createMemo } from 'solid-js';
 import styles from './TemperaturePanel.module.css';
 import commonStyles from './shared/common.module.css';
-import { useTemperatureStatus } from '../hooks/useTelemetryState';
+import { useTemperatureStatus, useSystemStatus} from '../hooks/useTelemetryState';
 import ValueDisplay from './shared/ValueDisplay';
 import Panel from './shared/Panel';
 
 function TemperaturePanel({ className }) {
   const temperatureData = useTemperatureStatus();
+  const systemData = useSystemStatus();
 
   // Helper function to format temperature values
   const formatTemperature = (temp) => {
@@ -103,19 +104,33 @@ function TemperaturePanel({ className }) {
     return 'high';
   };
 
-  const [rotation, setRotation] = createSignal(0);
-  const [targetSpeed, setTargetSpeed] = createSignal(0);
-  const [currentSpeed, setCurrentSpeed] = createSignal(0);
+  // Internal fan animation state
+  const [internalRotation, setInternalRotation] = createSignal(0);
+  const [internalTargetSpeed, setInternalTargetSpeed] = createSignal(0);
+  const [internalCurrentSpeed, setInternalCurrentSpeed] = createSignal(0);
+
+  // External fan animation state
+  const [externalRotation, setExternalRotation] = createSignal(0);
+  const [externalTargetSpeed, setExternalTargetSpeed] = createSignal(0);
+  const [externalCurrentSpeed, setExternalCurrentSpeed] = createSignal(0);
+
   let animationFrameId;
   let lastTime = 0;
 
   const updateFanSpeed = () => {
-    const data = temperatureData();
-    const pwm = data?.fanPwm;
+    const tempData = temperatureData();
+    const sysData = systemData();
     const maxSpeed = 360 * 3; // degrees per second at 100% PWM
-    // Convert PWM to rotation speed (degrees per second)
-    const newTargetSpeed = pwm && pwm > 10 ? (pwm / 100) * maxSpeed : 0;
-    setTargetSpeed(newTargetSpeed);
+
+    // Update internal fan speed
+    const internalPwm = tempData?.fanPwm;
+    const newInternalTargetSpeed = internalPwm && internalPwm > 10 ? (internalPwm / 100) * maxSpeed : 0;
+    setInternalTargetSpeed(newInternalTargetSpeed);
+
+    // Update external fan speed
+    const externalPwm = sysData?.extFanPwm;
+    const newExternalTargetSpeed = externalPwm && externalPwm > 10 ? (externalPwm / 100) * maxSpeed : 0;
+    setExternalTargetSpeed(newExternalTargetSpeed);
   };
 
   const animate = (timestamp) => {
@@ -123,13 +138,17 @@ function TemperaturePanel({ className }) {
     const deltaTime = (timestamp - lastTime) / 1000; // Convert to seconds
     lastTime = timestamp;
 
-    // Smoothly interpolate current speed toward target speed
-    const speedDiff = targetSpeed() - currentSpeed();
-    const acceleration = speedDiff * 5; // Adjust this value for responsiveness
-    setCurrentSpeed(prev => prev + acceleration * deltaTime);
+    // Update internal fan
+    const internalSpeedDiff = internalTargetSpeed() - internalCurrentSpeed();
+    const internalAcceleration = internalSpeedDiff * 5;
+    setInternalCurrentSpeed(prev => prev + internalAcceleration * deltaTime);
+    setInternalRotation(prev => (prev + internalCurrentSpeed() * deltaTime) % 360);
 
-    // Update rotation based on current speed
-    setRotation(prev => (prev + currentSpeed() * deltaTime) % 360);
+    // Update external fan
+    const externalSpeedDiff = externalTargetSpeed() - externalCurrentSpeed();
+    const externalAcceleration = externalSpeedDiff * 5;
+    setExternalCurrentSpeed(prev => prev + externalAcceleration * deltaTime);
+    setExternalRotation(prev => (prev + externalCurrentSpeed() * deltaTime) % 360);
 
     animationFrameId = requestAnimationFrame(animate);
   };
@@ -244,7 +263,7 @@ function TemperaturePanel({ className }) {
             </defs>
 
             {/* Fan - Top (cooling the hotside heatsink) */}
-            <g class={styles.fan}>
+            <g class={styles.fan} id='internalFan'>
               {/* Fan housing */}
               <circle cx="225" cy="35" r="25"
                       fill="none"
@@ -252,7 +271,7 @@ function TemperaturePanel({ className }) {
                       stroke-width="1" />
 
               {/* Fan blades with smooth rotation */}
-              <g class={styles.fanBlades} style={`transform: rotate(${rotation()}deg)`}>
+              <g class={styles.fanBlades} style={`transform: rotate(${internalRotation()}deg)`}>
                 <path d="M 225 15
                         C 230 18, 230 25, 225 28
                         C 220 25, 220 18, 225 15 Z"
@@ -275,7 +294,41 @@ function TemperaturePanel({ className }) {
                         stroke-width="0.5" />
               </g>
             </g>
-            <text x="100" y="40" class={`${styles.componentText} ${styles.fanText}`}>Fan {formatPwm(temperatureData()?.fanPwm)}%</text>
+
+            <g class={styles.fan} id='externalFan' transform="translate(110, 0)">
+              {/* Fan housing */}
+              <circle cx="225" cy="35" r="25"
+                      fill="none"
+                      stroke="var(--color-textSecondary)"
+                      stroke-width="1" />
+
+              {/* Fan blades with smooth rotation */}
+              <g class={styles.fanBlades} style={`transform: rotate(${externalRotation()}deg)`}>
+                <path d="M 225 15
+                        C 230 18, 230 25, 225 28
+                        C 220 25, 220 18, 225 15 Z"
+                      fill="var(--color-text)"
+                      transform="rotate(0, 225, 35)" />
+                <path d="M 225 15
+                        C 230 18, 230 25, 225 28
+                        C 220 25, 220 18, 225 15 Z"
+                      fill="var(--color-text)"
+                      transform="rotate(120, 225, 35)" />
+                <path d="M 225 15
+                        C 230 18, 230 25, 225 28
+                        C 220 25, 220 18, 225 15 Z"
+                      fill="var(--color-text)"
+                      transform="rotate(240, 225, 35)" />
+                {/* Center hub */}
+                <circle cx="225" cy="35" r="4"
+                        fill="var(--color-textSecondary)"
+                        stroke="var(--color-border)"
+                        stroke-width="0.5" />
+              </g>
+            </g>
+
+            <text x="70" y="30" class={`${styles.componentText} ${styles.fanText}`}>Int Fan {formatPwm(temperatureData()?.fanPwm)}%</text>
+            <text x="70" y="50" class={`${styles.componentText} ${styles.fanText}`}>Ext Fan {formatPwm(systemData()?.extFanPwm)}%</text>
 
             {/* Hotside Heatsink - Top */}
             <rect x="60" y="70" width="330" height="30"
@@ -310,11 +363,11 @@ function TemperaturePanel({ className }) {
                 <polygon points="0 0, 8 3, 0 6" fill="var(--color-text)" />
               </marker>
             </defs>
-            <line x1="270" y1="15" x2="288" y2="15" class={`${temperatureData()?.fanPwm > 75 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
-            <line x1="270" y1="25" x2="290" y2="25" class={`${temperatureData()?.fanPwm > 50 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
-            <line x1="270" y1="35" x2="292" y2="35" class={`${temperatureData()?.fanPwm > 10 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
-            <line x1="270" y1="45" x2="290" y2="45" class={`${temperatureData()?.fanPwm > 50 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
-            <line x1="270" y1="55" x2="288" y2="55" class={`${temperatureData()?.fanPwm > 75 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
+            <line x1="270" y1="15" x2="288" y2="15" class={`${(temperatureData()?.fanPwm * systemData()?.extFanPwm) > 7500 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
+            <line x1="270" y1="25" x2="290" y2="25" class={`${(temperatureData()?.fanPwm * systemData()?.extFanPwm) > 5000 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
+            <line x1="270" y1="35" x2="292" y2="35" class={`${(temperatureData()?.fanPwm * systemData()?.extFanPwm) > 1000 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
+            <line x1="270" y1="45" x2="290" y2="45" class={`${(temperatureData()?.fanPwm * systemData()?.extFanPwm) > 5000 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
+            <line x1="270" y1="55" x2="288" y2="55" class={`${(temperatureData()?.fanPwm * systemData()?.extFanPwm) > 7500 ? '' : styles.hiddenAirflow} ${styles.airflowLine}`} marker-end="url(#airflow-arrow)" />
           </svg>
         {/* </div> */}
     </Panel>
