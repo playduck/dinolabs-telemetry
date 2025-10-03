@@ -282,7 +282,7 @@ function MessageHistory({ className = '' }) {
 
     // Update current data rate
     updateCurrentDataRate();
-  }, 100);
+  }, 250);
 
   useTelemetrySubscription([
     {

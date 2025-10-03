@@ -82,8 +82,8 @@
   fill: var(--color-surfaceSecondary);
   stroke: var(--color-text);
   stroke-width: 1;
-  rx: 0;
-  ry: 0;
+  rx: var(--color-borderRadius);
+  ry: var(--color-borderRadius);
 }
 
 .componentBox.battery {
@@ -122,8 +122,8 @@
 .railColorOverlay {
   fill: none;
   stroke-width: 2;
-  rx: 0;
-  ry: 0;
+  rx: calc(0.5 * var(--color-borderRadius));
+  ry: calc(0.5 * var(--color-borderRadius));
 }
 
 .railColorOverlay.error {

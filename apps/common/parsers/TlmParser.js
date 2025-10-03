@@ -1,13 +1,13 @@
 const IParser = require('../interfaces/IParser');
 
 // Message type definitions from Python messages.py
-const MSG_TEC = 0x51;
-const MSG_POWER = 0x52;
-const MSG_SYS = 0x53;
-const MSG_EXP1 = 0x54;
-const MSG_EXP2 = 0x55;
-const MSG_EXP_IMU = 0x56;
-const MSG_FCS = 0x01;
+const MSG_TEC = 100;
+const MSG_POWER = 101;
+const MSG_SYS = 102;
+const MSG_EXP1 = 103;
+const MSG_EXP2 = 104;
+const MSG_EXP_IMU = 105;
+const MSG_FCS = 22;
 
 const MESSAGE_TYPE_NAMES = {
     [MSG_TEC]: "TEC",

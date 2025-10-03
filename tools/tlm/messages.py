@@ -436,10 +436,35 @@ class ExpImuMessage:
 
 @dataclass
 class FCSMessage:
-    fcs_state: int # 8 bits
+    flight_state: int  # 8 bits - FSM_FlightPhase from WARP
+    reserved: int      # 56 bits - Reserved bytes
+
+    interval_ms = SLOW_INTERVAL
+
+    # Flight phase states from WARP FSM
+    PHASE_STARTUP = 0
+    PHASE_PREFLIGHT = 1
+    PHASE_LAUNCH_READY = 2
+    PHASE_BOOST = 3
+    PHASE_COAST = 4
+    PHASE_DROGUE_DESCENT = 5
+    PHASE_MAIN_DESCENT = 6
+    PHASE_LANDED = 7
+
+    PHASE_NAMES = {
+        0: "STARTUP",
+        1: "PREFLIGHT",
+        2: "LAUNCH_READY",
+        3: "BOOST",
+        4: "COAST",
+        5: "DROGUE_DESCENT",
+        6: "MAIN_DESCENT",
+        7: "LANDED"
+    }
 
     _bitfield = BitField([
-        ('fcs_state', 8, 1.0, '')
+        ('flight_state', 8, 1.0, ''),
+        ('reserved', 56, 1.0, '')
     ])
 
     def pack_data(self) -> bytes:
@@ -450,9 +475,13 @@ class FCSMessage:
         values = cls._bitfield.unpack(data)
         return cls(**values)
 
+    def get_phase_name(self) -> str:
+        """Get the human-readable name for the current flight phase."""
+        return self.PHASE_NAMES.get(self.flight_state, f"UNKNOWN({self.flight_state})")
+
     def display_values(self) -> None:
         """Display the parsed values from this message."""
-        print(f"   FCS state: {self._bitfield.display_value('fcs_state', self.fcs_state)}")
+        print(f"    Flight state: {self.flight_state} ({self.get_phase_name()})")
 
 
 # Message registry

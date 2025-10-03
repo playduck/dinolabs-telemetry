@@ -8,19 +8,40 @@ import { MeshLine, MeshLineMaterial } from 'three.meshline';
 import { BsArrowCounterclockwise } from 'solid-icons/bs';
 import styles from './VisualizationPanel.module.css';
 import Panel from './shared/Panel';
+import { useIMUStatus } from '../hooks/useTelemetryState';
+import { useTheme } from '../contexts/ThemeContext';
 
 function VisualizationPanel({ className }) {
+  // Check if mobile device
+  const isMobile = () => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth <= 768 || (window.innerWidth <= 900 && window.innerHeight <= 700);
+  };
+
+  // Don't render 3D on mobile to save power
+  if (isMobile()) {
+    return null;
+  }
+
   const [canvasRef, setCanvasRef] = createSignal(null);
+  const imuData = useIMUStatus();
+  const { theme } = useTheme();
+
   let camera, scene, renderer, controls, helper, labelRenderer;
   let meshGroup = new THREE.Group();
   let animationId;
+  let grid, axesHelper; // Store references for theme updates
 
   // Default camera position
   const defaultCameraPosition = new THREE.Vector3(4.2, 2.2, 1.5);
-  const defaultTarget = new THREE.Vector3(0.5, 1.4, 0);
+  const defaultTarget = new THREE.Vector3(0.0, 1.5, 0);
 
   // Label references for telemetry data
   let batteryVoltageLabel, chargePowerInLabel, coldSideBottomLabel, hotSideLabel, coldSideTopLabel, cpuLabel;
+
+  // Vector visualization arrows
+  let accelArrow, magArrow;
+  let accelLabel, magLabel;
 
   // Simple reset function - no state management
   const resetCamera = () => {
@@ -91,11 +112,15 @@ function VisualizationPanel({ className }) {
     const canvas = canvasRef();
     if (!canvas) return;
 
+    // Get theme colors
+    const themeColors = theme().colors;
+    const bgColor = new THREE.Color(themeColors.background);
+    const gridColor1 = new THREE.Color(themeColors.grid);
+    const gridColor2 = new THREE.Color(themeColors.gridSecondary);
+
     // Scene setup
     scene = new THREE.Scene();
-    const computedStyle = getComputedStyle(document.body);
-    const fogColor = computedStyle.getPropertyValue('--color-surface') || '#1a1a2e';
-    scene.fog = new THREE.FogExp2(fogColor, 0.05);
+    scene.fog = new THREE.FogExp2(bgColor.getHex(), 0.05);
 
     // Camera setup
     const rect = canvas.getBoundingClientRect();
@@ -107,7 +132,7 @@ function VisualizationPanel({ className }) {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(rect.width, rect.height);
-    renderer.setClearColor(0x000000, 0);
+    renderer.setClearColor(bgColor.getHex(), 1);
     renderer.autoClear = false;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -144,16 +169,19 @@ function VisualizationPanel({ className }) {
 
     controls.update();
 
-    // Grid
-    const grid = new THREE.GridHelper(100, 570, 0xa9a9a9, 0x9c9c9c);
+    // Grid with theme colors
+    grid = new THREE.GridHelper(100, 570, gridColor1.getHex(), gridColor2.getHex());
     grid.material.opacity = 0.5;
     grid.material.depthWrite = false;
     grid.material.transparent = true;
     scene.add(grid);
 
-    // Axes helper with WARR colors
-    const axesHelper = new THREE.AxesHelper(20);
-    axesHelper.setColors('#ff4444', '#44ff44', '#4444ff'); // Basic RGB colors as fallback
+    // Axes helper with WARR theme colors
+    axesHelper = new THREE.AxesHelper(20);
+    const red = new THREE.Color(themeColors.warrRed);
+    const green = new THREE.Color(themeColors.warrGreen);
+    const blue = new THREE.Color(themeColors.warrBlue1);
+    axesHelper.setColors(red, green, blue);
     scene.add(axesHelper);
 
     // View helper
@@ -218,7 +246,10 @@ function VisualizationPanel({ className }) {
     scene.add(meshGroup);
 
     // Create telemetry labels
-    setupTelemetryLabels();
+    // setupTelemetryLabels();
+
+    // Create vector arrows for IMU data
+    setupVectorArrows();
 
     // Start animation loop
     animate();
@@ -276,10 +307,165 @@ function VisualizationPanel({ className }) {
     cpuLabel.setValue("00.00");
   }
 
+  // Helper function to create thick arrow with cylinder shaft
+  function createThickArrow(color, origin) {
+    const group = new THREE.Group();
+    group.position.copy(origin);
+
+    // Shaft (cylinder) - much thicker for visibility
+    const shaftGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1, 8);
+    const shaftMaterial = new THREE.MeshBasicMaterial({ color: color });
+    const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
+    shaft.position.y = 0.5; // Center the shaft
+
+    // Cone head - proportionally larger
+    const headGeometry = new THREE.ConeGeometry(0.12, 0.3, 8);
+    const headMaterial = new THREE.MeshBasicMaterial({ color: color });
+    const head = new THREE.Mesh(headGeometry, headMaterial);
+    head.position.y = 1.15; // At the end of shaft
+
+    group.add(shaft);
+    group.add(head);
+
+    // Store references for later updates
+    group.userData.shaft = shaft;
+    group.userData.head = head;
+
+    // Render on top
+    group.traverse((child) => {
+      if (child.material) {
+        child.material.depthTest = false;
+        child.material.depthWrite = false;
+        child.renderOrder = 999;
+      }
+    });
+
+    return group;
+  }
+
+  function setupVectorArrows() {
+    // Get theme colors
+    const themeColors = theme().colors;
+    const accelColor = new THREE.Color(themeColors.warrBlue2).getHex();
+    const magColor = new THREE.Color(themeColors.warrBlue3).getHex();
+
+    // Acceleration vector arrow (primary color)
+    const accelOrigin = new THREE.Vector3(0, 1.5, 0);
+    accelArrow = createThickArrow(accelColor, accelOrigin);
+    accelArrow.visible = false;
+    scene.add(accelArrow);
+
+    // Acceleration label
+    const accelLabelDiv = document.createElement('div');
+    accelLabelDiv.className = styles.floating;
+    accelLabelDiv.style.backgroundColor = themeColors.primary;
+    const accelNameSpan = document.createElement('span');
+    accelNameSpan.className = styles.name;
+    accelNameSpan.innerText = 'Accel';
+    const accelValueSpan = document.createElement('span');
+    accelValueSpan.className = styles.value;
+    accelLabelDiv.appendChild(accelNameSpan);
+    accelLabelDiv.appendChild(accelValueSpan);
+    accelLabelDiv.setValue = (value) => { accelValueSpan.innerText = value; };
+
+    accelLabel = new CSS2DObject(accelLabelDiv);
+    accelLabel.position.set(0, 1.5, 0);
+    accelLabel.center.set(0.5, 0.5);
+    accelLabel.visible = false;
+    scene.add(accelLabel);
+
+    // Magnetic field vector arrow (secondary color)
+    const magOrigin = new THREE.Vector3(0, 1.5, 0);
+    magArrow = createThickArrow(magColor, magOrigin);
+    magArrow.visible = false;
+    scene.add(magArrow);
+
+    // Magnetic field label
+    const magLabelDiv = document.createElement('div');
+    magLabelDiv.className = styles.floating;
+    magLabelDiv.style.backgroundColor = themeColors.secondary;
+    const magNameSpan = document.createElement('span');
+    magNameSpan.className = styles.name;
+    magNameSpan.innerText = 'Mag';
+    const magValueSpan = document.createElement('span');
+    magValueSpan.className = styles.value;
+    magLabelDiv.appendChild(magNameSpan);
+    magLabelDiv.appendChild(magValueSpan);
+    magLabelDiv.setValue = (value) => { magValueSpan.innerText = value; };
+
+    magLabel = new CSS2DObject(magLabelDiv);
+    magLabel.position.set(0, 1.5, 0);
+    magLabel.center.set(0.5, 0.5);
+    magLabel.visible = false;
+    scene.add(magLabel);
+  }
+
+  function updateVectorArrows() {
+    const data = imuData();
+    if (!data || !accelArrow || !magArrow) return;
+
+    // Helper to update a custom arrow
+    function updateArrow(arrow, label, vector, magnitude, lengthScale, labelOffset) {
+      if (magnitude > 0.01) {
+        const direction = vector.clone().normalize();
+        const length = Math.min(magnitude * lengthScale, 5);
+
+        // Rotate arrow to point in direction
+        const quaternion = new THREE.Quaternion();
+        quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+        arrow.setRotationFromQuaternion(quaternion);
+
+        // Scale shaft to length
+        const shaft = arrow.userData.shaft;
+        const head = arrow.userData.head;
+        shaft.scale.y = length;
+        shaft.position.y = length / 2;
+        head.position.y = length + 0.1;
+
+        arrow.visible = true;
+
+        // Update label
+        const labelPos = direction.clone().multiplyScalar(length + labelOffset);
+        labelPos.add(arrow.position);
+        label.position.copy(labelPos);
+        label.element.setValue(`${magnitude.toFixed(2)}g`);
+        label.visible = true;
+      } else {
+        arrow.visible = false;
+        label.visible = false;
+      }
+    }
+
+    // Update acceleration arrow
+    if (data.accelerometer) {
+      const { x, y, z } = data.accelerometer;
+      if (x !== null && y !== null && z !== null) {
+        const accelVector = new THREE.Vector3(x, y, z);
+        const magnitude = accelVector.length();
+        updateArrow(accelArrow, accelLabel, accelVector, magnitude, 1.0, 0.3);
+      }
+    }
+
+    // Update magnetic field arrow
+    if (data.magnetometer) {
+      const { x, y, z } = data.magnetometer;
+      if (x !== null && y !== null && z !== null) {
+        const magVector = new THREE.Vector3(x, y, z);
+        const magnitude = magVector.length();
+        updateArrow(magArrow, magLabel, magVector, magnitude, 2.0, 0.3);
+        // Update label unit for magnetometer
+        if (magLabel.visible) {
+          magLabel.element.setValue(`${magnitude.toFixed(2)}G`);
+        }
+      }
+    }
+  }
+
   function animate() {
     animationId = requestAnimationFrame(animate);
 
     if (controls) controls.update();
+    updateVectorArrows(); // Update IMU vectors every frame
     if (renderer && scene && camera) {
       renderer.clear();
       if (helper) helper.render(renderer);
@@ -329,6 +515,28 @@ function VisualizationPanel({ className }) {
       renderer.dispose();
     }
   }
+
+  // Update scene colors when theme changes
+  createEffect(() => {
+    const themeColors = theme().colors;
+    if (!scene || !renderer || !grid || !axesHelper) return;
+
+    // Update background and fog
+    const bgColor = new THREE.Color(themeColors.background);
+    renderer.setClearColor(bgColor.getHex(), 1);
+    scene.fog.color.setHex(bgColor.getHex());
+
+    // Update grid colors
+    const gridColor1 = new THREE.Color(themeColors.grid);
+    const gridColor2 = new THREE.Color(themeColors.gridSecondary);
+    grid.material.color.setHex(gridColor1.getHex());
+
+    // Update axes colors
+    const red = new THREE.Color(themeColors.warrRed);
+    const green = new THREE.Color(themeColors.warrGreen);
+    const blue = new THREE.Color(themeColors.warrBlue1);
+    axesHelper.setColors(red, green, blue);
+  });
 
   // Solid.js lifecycle
   onMount(() => {

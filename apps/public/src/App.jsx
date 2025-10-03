@@ -27,12 +27,12 @@ function AppContent() {
           <SystemCard type="EXPERIMENT" className="experiment-grid-item" />
           <SystemCard type="TEMPERATURE" className="temperature-grid-item" />
           <SystemCard type="POWER" className="power-grid-item" />
+          <ExperimentPanel className="experiment-panel-grid-item" />
+          <IMUPanel className="imu-panel-grid-item" />
           <PowerPanel className="power-panel-grid-item" />
           <TemperaturePanel className="temperature-panel-grid-item" />
-          <VisualizationPanel className="visualization-panel-grid-item" />
-          <IMUPanel className="imu-panel-grid-item" />
-          <ExperimentPanel className="experiment-panel-grid-item" />
           <MessageHistory className="message-history-grid-item" />
+          <VisualizationPanel className="visualization-panel-grid-item" />
         </div>
       </div>
       <Footer />

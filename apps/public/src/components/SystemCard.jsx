@@ -13,9 +13,9 @@ function SystemCard({ type, className = '' }) {
     return chambers.map((ready, index) => (
       <div
         class={`${styles.chamber} ${ready ? styles.chamberReady : ''} ${ready ? 'glow-blue' : ''}`}
-        title={`Chamber ${index + 1}: ${ready ? 'Ready' : 'Not Ready'}`}
+        title={`Chamber ${index}: ${ready ? 'Ready' : 'Not Ready'}`}
       >
-        {index + 1}
+        {index}
       </div>
     ));
   };
@@ -114,17 +114,10 @@ function SystemCard({ type, className = '' }) {
             </div>
             <div class={styles.systemContent}>
               <ValueDisplay
-                label="Battery"
-                value={() => {
-                  const voltage = systemData().POWER.batteryVoltage;
-                  if (voltage === null) return null;
-                  // New TLM format provides voltages in volts, old format in millivolts
-                  // If voltage is a reasonable volt value (0-50V), use as-is
-                  // If voltage is large (like millivolts), divide by 1000
-                  return voltage > 50 ? voltage / 1000.0 : voltage;
-                }}
-                unit="V"
-                precision={2}
+                label="SoC"
+                value={() => systemData().SYSTEM.soc}
+                unit="%"
+                precision={1}
               />
             </div>
           </div>

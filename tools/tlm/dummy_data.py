@@ -50,7 +50,7 @@ class DummyDataSource:
         t = time.time() - self.start_time
 
         # Target cold side temperature with slow variations
-        target_cold = 20.0 + 1.0 * math.sin(t / 30.0)
+        target_cold = 20.0
 
         # Smooth temperature transitions
         self.cold_side_temp += (target_cold - self.cold_side_temp) * 0.1
@@ -86,10 +86,10 @@ class DummyDataSource:
 
         # Set status flags based on actual temperature values
         # Bit 0: temperature low (cold side < 19°C)
-        # Bit 1: temperature high (cold side > 21°C or hot side >= 49°C)
+        # Bit 1: temperature high (cold side > 21°C)
         if self.cold_side_temp < 19.0:
             message.stats_byte |= 0x01
-        if self.cold_side_temp > 21.0 or self.hot_side_temp >= 49.0:
+        if self.cold_side_temp > 21.0:
             message.stats_byte |= 0x02
 
         return message
@@ -221,7 +221,7 @@ class DummyDataSource:
         # LED off: normal bioluminescence behavior
         # Decay existing spike
         if self.channel_spikes[channel_idx] > 0:
-            decay_rate = 2.0  # V/s decay rate
+            decay_rate = 0.5  # V/s decay rate
             self.channel_spikes[channel_idx] -= decay_rate * dt
             if self.channel_spikes[channel_idx] < 0:
                 self.channel_spikes[channel_idx] = 0
@@ -238,8 +238,12 @@ class DummyDataSource:
 
         # Return total signal: baseline + spike + noise
         signal = self.channel_baselines[channel_idx] + self.channel_spikes[channel_idx]
-        signal += random.uniform(-0.001, 0.001)  # 1mV noise
-        return max(0.0, signal)  # Clamp to positive
+        signal += random.uniform(-0.01, 0.01)
+
+        # low-pass filter to smooth out noise
+        signal = 0.7 * (self.channel_baselines[channel_idx] + self.channel_spikes[channel_idx]) + 0.3 * signal
+
+        return max(-0.18, signal)  # Clamp to positive
 
     def _voltage_to_adc(self, voltage, bits):
         """Convert voltage to ADC counts."""

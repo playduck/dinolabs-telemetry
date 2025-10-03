@@ -333,7 +333,6 @@ export const determineTemperatureStatus = (coldSideTemp, hotSideTemp, isAlreadyC
 
   if (coldSideTemp !== null || hotSideTemp !== null) {
     // Cold side should be 20°C ± 1°C (19-21°C range)
-    // Hot side should be below 50°C
     // Convert from millidegrees to degrees for comparison if needed
     const coldSideDegC = coldSideTemp !== null ?
       (isAlreadyCelsius ? coldSideTemp : coldSideTemp / 1000) : null;
@@ -345,20 +344,16 @@ export const determineTemperatureStatus = (coldSideTemp, hotSideTemp, isAlreadyC
 
     const tooLow = coldSideDegC !== null && coldSideDegC < coldSideTarget - coldSideTolerance;
     const tooHigh = coldSideDegC !== null && coldSideDegC > coldSideTarget + coldSideTolerance;
-    const hotOvertemp = hotSideDegC !== null && hotSideDegC >= 49;
 
     if (tooLow) {
       tempStatus = 'COLD';
     }
     if (tooHigh) {
-      tempStatus = 'HOT';
-    }
-    if (hotOvertemp) {
       tempStatus = 'OVERHEAT';
     }
 
-    // if two or more are true
-    if ((tooLow && tooHigh) || (tooLow && hotOvertemp) || (tooHigh && hotOvertemp)) {
+    // if both are true
+    if (tooLow && tooHigh) {
       tempStatus = 'ERROR';
     }
   }

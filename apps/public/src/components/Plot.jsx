@@ -31,6 +31,7 @@ function Plot(props) {
   const [plotSize, setPlotSize] = createSignal({ width: props.width || 400, height: props.height || 200 });
   const [containerRef, setContainerRef] = createSignal(null);
   const [uplotRef, setUplotRef] = createSignal(null);
+  const [hasRealData, setHasRealData] = createSignal(false);
   const { theme } = useTheme();
 
   // Create plot instance for cursor sync
@@ -79,8 +80,15 @@ function Plot(props) {
       plotInstances.delete(plotInstance);
     });
 
-    // Skip initialization for multi-series plots - they'll be populated via addDataPoint
-    if (props.multiSeries) return;
+    // Initialize with dummy data at (0,0) so plots always render
+    if (props.multiSeries && props.series) {
+      // Initialize multi-series plots with a single point at (0,0) for each series
+      const initialData = props.series.map((_, idx) => {
+        return idx === 0 ? [0] : [0]; // Time at 0, values at 0
+      });
+      setData(initialData);
+      return;
+    }
 
     // Initialize with sample data for single-series plots
     const now = Date.now() / 1000;
@@ -97,6 +105,29 @@ function Plot(props) {
 
   const addDataPoint = (timestamp, ...values) => {
     const maxPoints = props.maxPoints || 50;
+
+    // On first real data point, clear dummy data
+    if (!hasRealData()) {
+      setHasRealData(true);
+      if (props.multiSeries) {
+        // Reset to just this first real data point for multi-series
+        setData(currentData => {
+          return currentData.map((series, idx) => {
+            if (idx === 0) {
+              return [timestamp];
+            } else if (values[idx - 1] !== undefined && values[idx - 1] !== null) {
+              return [values[idx - 1]];
+            } else {
+              return [null];
+            }
+          });
+        });
+      } else {
+        // Reset to just this first real data point for single-series
+        setData([[timestamp], [values[0]]]);
+      }
+      return;
+    }
 
     if (props.multiSeries) {
       // Handle multiple values for multi-series plots
@@ -297,6 +328,7 @@ function Plot(props) {
             x: true,
             y: true
           }}
+          pxAlign={0}
           hooks={{
             setCursor: [
               (uplot) => {

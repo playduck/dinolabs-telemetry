@@ -6,11 +6,16 @@ import Panel from './shared/Panel';
 import Plot from './Plot';
 
 function IMUPanel({ className }) {
+  const scrollback = 100;
+
   const imuData = useIMUStatus();
   const timestamps = useTimestampsState();
   const { theme } = useTheme();
   const [accelPlotRef, setAccelPlotRef] = createSignal(null);
   const [magPlotRef, setMagPlotRef] = createSignal(null);
+
+  // Track last seen IMU data to prevent duplicate updates
+  const [lastImuData, setLastImuData] = createSignal(null);
 
   // Color scheme for X, Y, Z axes using theme colors
   const axisColors = () => ({
@@ -24,9 +29,9 @@ function IMUPanel({ className }) {
     const colors = axisColors();
     return [
       {}, // Time axis
-      { label: "X", stroke: colors.x, width: 2 },
-      { label: "Y", stroke: colors.y, width: 2 },
-      { label: "Z", stroke: colors.z, width: 2 }
+      { label: "X", stroke: colors.x, width: 1.0, points: { show: false } },
+      { label: "Y", stroke: colors.y, width: 1.0, points: { show: false } },
+      { label: "Z", stroke: colors.z, width: 1.0, points: { show: false } }
     ];
   };
 
@@ -35,9 +40,9 @@ function IMUPanel({ className }) {
     const colors = axisColors();
     return [
       {}, // Time axis
-      { label: "X", stroke: colors.x, width: 2 },
-      { label: "Y", stroke: colors.y, width: 2 },
-      { label: "Z", stroke: colors.z, width: 2 }
+      { label: "X", stroke: colors.x, width: 1.0, points: { show: false } },
+      { label: "Y", stroke: colors.y, width: 1.0, points: { show: false } },
+      { label: "Z", stroke: colors.z, width: 1.0, points: { show: false } }
     ];
   };
 
@@ -69,16 +74,34 @@ function IMUPanel({ className }) {
   // Real-time data updates
   createEffect(() => {
     const data = imuData();
-    const ts = timestamps();
+    if (!data) return;
+
     const accelRef = accelPlotRef();
     const magRef = magPlotRef();
+    const lastData = lastImuData();
 
-    if (data && ts && ts.messageTimestamp) {
-      // Use server timestamp (when data was received) in seconds, not client time
-      const timestamp = ts.messageTimestamp / 1000;
+    // Check if IMU data has actually changed
+    const accelChanged = !lastData ||
+      !lastData.accelerometer ||
+      lastData.accelerometer.x !== data.accelerometer?.x ||
+      lastData.accelerometer.y !== data.accelerometer?.y ||
+      lastData.accelerometer.z !== data.accelerometer?.z;
 
-      // Update accelerometer plot
-      if (accelRef && accelRef.addDataPoint && data.accelerometer) {
+    const magChanged = !lastData ||
+      !lastData.magnetometer ||
+      lastData.magnetometer.x !== data.magnetometer?.x ||
+      lastData.magnetometer.y !== data.magnetometer?.y ||
+      lastData.magnetometer.z !== data.magnetometer?.z;
+
+    // Only update if data has changed
+    if (accelChanged || magChanged) {
+      // Use the lastExperimentMessage timestamp (EXPIMU messages update this)
+      const ts = timestamps();
+      if (!ts || !ts.lastExperimentMessage) return;
+      const timestamp = ts.lastExperimentMessage / 1000;
+
+      // Update accelerometer plot if data changed
+      if (accelChanged && accelRef && accelRef.addDataPoint && data.accelerometer) {
         accelRef.addDataPoint(
           timestamp,
           data.accelerometer.x,
@@ -87,8 +110,8 @@ function IMUPanel({ className }) {
         );
       }
 
-      // Update magnetometer plot
-      if (magRef && magRef.addDataPoint && data.magnetometer) {
+      // Update magnetometer plot if data changed
+      if (magChanged && magRef && magRef.addDataPoint && data.magnetometer) {
         magRef.addDataPoint(
           timestamp,
           data.magnetometer.x,
@@ -96,6 +119,12 @@ function IMUPanel({ className }) {
           data.magnetometer.z
         );
       }
+
+      // Update last seen data
+      setLastImuData({
+        accelerometer: data.accelerometer ? { ...data.accelerometer } : null,
+        magnetometer: data.magnetometer ? { ...data.magnetometer } : null
+      });
     }
   });
 
@@ -117,7 +146,7 @@ function IMUPanel({ className }) {
                 x: { time: true },
                 y: { auto: true }
               }}
-              maxPoints={200}
+              maxPoints={scrollback}
               ref={setAccelPlotRef}
             />
           </div>
@@ -134,7 +163,7 @@ function IMUPanel({ className }) {
                 x: { time: true },
                 y: { auto: true }
               }}
-              maxPoints={200}
+              maxPoints={scrollback}
               ref={setMagPlotRef}
             />
           </div>
