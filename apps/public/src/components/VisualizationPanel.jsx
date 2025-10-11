@@ -2,6 +2,7 @@ import { onMount, onCleanup, createSignal, createEffect } from 'solid-js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { ViewHelper } from 'three/addons/helpers/ViewHelper.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { MeshLine, MeshLineMaterial } from 'three.meshline';
@@ -33,8 +34,8 @@ function VisualizationPanel({ className }) {
   let grid, axesHelper; // Store references for theme updates
 
   // Default camera position
-  const defaultCameraPosition = new THREE.Vector3(4.2, 2.2, 1.5);
-  const defaultTarget = new THREE.Vector3(0.0, 1.5, 0);
+  const defaultCameraPosition = new THREE.Vector3(4.2, 2.2, 1.0);
+  const defaultTarget = new THREE.Vector3(0.0, 1.0, 0);
 
   // Label references for telemetry data
   let batteryVoltageLabel, chargePowerInLabel, coldSideBottomLabel, hotSideLabel, coldSideTopLabel, cpuLabel;
@@ -216,8 +217,15 @@ function VisualizationPanel({ className }) {
     scene.add(plane);
 
     // Load GLTF model
+    const dracoLoader = new DRACOLoader();
+    // dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+    dracoLoader.setDecoderPath('./assets/');
+    dracoLoader.setDecoderConfig({ type: 'js' });
+
     const gltfLoader = new GLTFLoader();
-    const url = "assets/main_assembly-opt.glb";
+    gltfLoader.setDRACOLoader(dracoLoader);
+
+    const url = "assets/payloadc.glb";
     gltfLoader.load(url, (gltf) => {
       const pivotY = 1.5;
       const root = gltf.scene;
@@ -350,7 +358,7 @@ function VisualizationPanel({ className }) {
     const magColor = new THREE.Color(themeColors.warrBlue3).getHex();
 
     // Acceleration vector arrow (primary color)
-    const accelOrigin = new THREE.Vector3(0, 1.5, 0);
+    const accelOrigin = new THREE.Vector3(0, 0.75, 0);
     accelArrow = createThickArrow(accelColor, accelOrigin);
     accelArrow.visible = false;
     scene.add(accelArrow);
@@ -369,13 +377,13 @@ function VisualizationPanel({ className }) {
     accelLabelDiv.setValue = (value) => { accelValueSpan.innerText = value; };
 
     accelLabel = new CSS2DObject(accelLabelDiv);
-    accelLabel.position.set(0, 1.5, 0);
+    accelLabel.position.set(0, 0.75, 0);
     accelLabel.center.set(0.5, 0.5);
     accelLabel.visible = false;
     scene.add(accelLabel);
 
     // Magnetic field vector arrow (secondary color)
-    const magOrigin = new THREE.Vector3(0, 1.5, 0);
+    const magOrigin = new THREE.Vector3(0, 0.75, 0);
     magArrow = createThickArrow(magColor, magOrigin);
     magArrow.visible = false;
     scene.add(magArrow);
@@ -394,7 +402,7 @@ function VisualizationPanel({ className }) {
     magLabelDiv.setValue = (value) => { magValueSpan.innerText = value; };
 
     magLabel = new CSS2DObject(magLabelDiv);
-    magLabel.position.set(0, 1.5, 0);
+    magLabel.position.set(0, 0.75, 0);
     magLabel.center.set(0.5, 0.5);
     magLabel.visible = false;
     scene.add(magLabel);

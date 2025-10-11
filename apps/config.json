@@ -1,5 +1,5 @@
 {
-    "active_data_source": "tcp",
+    "active_data_source": "serial",
     "active_parser": "tlm",
     "data_sources": {
         "tcp": {

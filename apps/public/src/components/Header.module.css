@@ -147,6 +147,10 @@ h1 {
   z-index: 9999;
 }
 
+.spacerDummy::after {
+  content: "DEMO MODE";
+}
+
 .info {
   font-size: 1.0em !important;
   display: grid;

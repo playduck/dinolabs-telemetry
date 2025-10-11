@@ -25,7 +25,7 @@ function MessageHistory({ className = '' }) {
   const bucketSizeMs = 1000; // 1-second buckets
   const maxHistoryBuckets = 120; // Keep 2 minutes of history
   const maxEvents = 50; // Keep last 50 significant events
-  const healthyThresholdMin = 30; // msgs/sec
+  const healthyThresholdMin = 28; // msgs/sec
   const degradedThresholdMin = 10; // msgs/sec
 
   // Internal state

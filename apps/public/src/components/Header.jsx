@@ -64,9 +64,9 @@ function Header() {
 
   const getSpacerClass = () => {
     const status = connectionStatus();
-    return !status.connected 
+    return !status.connected
       ? `${styles.spacer} ${styles.spacerOffline}`
-      : styles.spacer;
+      : `${styles.spacer}`;
   };
   return (
     <header class={styles.header}>

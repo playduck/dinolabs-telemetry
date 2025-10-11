@@ -13,14 +13,14 @@ from typing import List, Tuple, Dict
 
 
 # Message type definitions
-MSG_TEC = 0x51
-MSG_POWER = 0x52
-MSG_SYS = 0x53
-MSG_EXP1 = 0x54
-MSG_EXP2 = 0x55
-MSG_EXP_IMU = 0x56
+MSG_TEC = 100
+MSG_POWER = 101
+MSG_SYS = 102
+MSG_EXP1 = 103
+MSG_EXP2 = 104
+MSG_EXP_IMU = 105
 
-MSG_FCS = 0x01
+MSG_FCS = 20
 
 SLOW_INTERVAL = 1000
 FAST_INTERVAL = 100

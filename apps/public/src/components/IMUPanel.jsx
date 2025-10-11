@@ -6,7 +6,7 @@ import Panel from './shared/Panel';
 import Plot from './Plot';
 
 function IMUPanel({ className }) {
-  const scrollback = 100;
+  const scrollback = 256;
 
   const imuData = useIMUStatus();
   const timestamps = useTimestampsState();
@@ -29,9 +29,9 @@ function IMUPanel({ className }) {
     const colors = axisColors();
     return [
       {}, // Time axis
-      { label: "X", stroke: colors.x, width: 1.0, points: { show: false } },
-      { label: "Y", stroke: colors.y, width: 1.0, points: { show: false } },
-      { label: "Z", stroke: colors.z, width: 1.0, points: { show: false } }
+      { label: "X", stroke: colors.x, width: 1.0, points: { show: true } },
+      { label: "Y", stroke: colors.y, width: 1.0, points: { show: true } },
+      { label: "Z", stroke: colors.z, width: 1.0, points: { show: true } }
     ];
   };
 
@@ -40,9 +40,9 @@ function IMUPanel({ className }) {
     const colors = axisColors();
     return [
       {}, // Time axis
-      { label: "X", stroke: colors.x, width: 1.0, points: { show: false } },
-      { label: "Y", stroke: colors.y, width: 1.0, points: { show: false } },
-      { label: "Z", stroke: colors.z, width: 1.0, points: { show: false } }
+      { label: "X", stroke: colors.x, width: 1.0, points: { show: true } },
+      { label: "Y", stroke: colors.y, width: 1.0, points: { show: true } },
+      { label: "Z", stroke: colors.z, width: 1.0, points: { show: true } }
     ];
   };
 
@@ -63,8 +63,8 @@ function IMUPanel({ className }) {
         stroke: colors.text,
         grid: { show: true, stroke: colors.grid },
         ticks: { show: true, stroke: colors.text },
-        size: 60,
-        gap: 8,
+        size: 40,
+        gap: 0,
         labelSize: 12,
         font: "12px system-ui"
       }
@@ -81,17 +81,21 @@ function IMUPanel({ className }) {
     const lastData = lastImuData();
 
     // Check if IMU data has actually changed
-    const accelChanged = !lastData ||
-      !lastData.accelerometer ||
-      lastData.accelerometer.x !== data.accelerometer?.x ||
-      lastData.accelerometer.y !== data.accelerometer?.y ||
-      lastData.accelerometer.z !== data.accelerometer?.z;
+    const accelChanged = true;
+    const magChanged = true;
+    // const accelChanged = !lastData ||
+    //   !lastData.accelerometer ||
+    //   lastData.accelerometer.x !== data.accelerometer?.x ||
+    //   lastData.accelerometer.y !== data.accelerometer?.y ||
+    //   lastData.accelerometer.z !== data.accelerometer?.z;
 
-    const magChanged = !lastData ||
-      !lastData.magnetometer ||
-      lastData.magnetometer.x !== data.magnetometer?.x ||
-      lastData.magnetometer.y !== data.magnetometer?.y ||
-      lastData.magnetometer.z !== data.magnetometer?.z;
+    // const magChanged = !lastData ||
+    //   !lastData.magnetometer ||
+    //   lastData.magnetometer.x !== data.magnetometer?.x ||
+    //   lastData.magnetometer.y !== data.magnetometer?.y ||
+    //   lastData.magnetometer.z !== data.magnetometer?.z;
+
+    // console.log("IMU Data Update - Accel Changed:", accelChanged, "Mag Changed:", magChanged);
 
     // Only update if data has changed
     if (accelChanged || magChanged) {
@@ -121,10 +125,10 @@ function IMUPanel({ className }) {
       }
 
       // Update last seen data
-      setLastImuData({
-        accelerometer: data.accelerometer ? { ...data.accelerometer } : null,
-        magnetometer: data.magnetometer ? { ...data.magnetometer } : null
-      });
+      // setLastImuData({
+      //   accelerometer: data.accelerometer ? { ...data.accelerometer } : null,
+      //   magnetometer: data.magnetometer ? { ...data.magnetometer } : null
+      // });
     }
   });
 

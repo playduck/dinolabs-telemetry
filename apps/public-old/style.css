@@ -208,6 +208,13 @@ button:active {
     color: var(--warr-red);
 }
 
+.dummy #connection::before,
+.dummy #system-state::before,
+.dummy #rocket-state::before {
+    content: "Demo";
+    color: var(--warr-yellow);
+}
+
 footer {
     background-color: var(--background);
     z-index: 999999;

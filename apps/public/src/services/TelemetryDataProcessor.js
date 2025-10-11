@@ -1,13 +1,13 @@
 // Consolidated telemetry data processing for new TLM format
 
 // Message type constants from TlmParser.js
-const MSG_TEC = 0x51;
-const MSG_POWER = 0x52;
-const MSG_SYS = 0x53;
-const MSG_EXP1 = 0x54;
-const MSG_EXP2 = 0x55;
-const MSG_EXP_IMU = 0x56;
-const MSG_FCS = 0x01;
+const MSG_TEC = 100;
+const MSG_POWER = 101;
+const MSG_SYS = 102;
+const MSG_EXP1 = 103;
+const MSG_EXP2 = 104;
+const MSG_EXP_IMU = 105;
+const MSG_FCS = 20;
 
 const MESSAGE_TYPE_NAMES = {
   [MSG_TEC]: "TEC",
@@ -64,8 +64,8 @@ const decodePowerStatusByte = (statusByte) => {
     rail_12v_ok: !(statusByte & 0x02),        // Bit 1: 12V error (invert for OK)
     rail_5v_ok: !(statusByte & 0x04),         // Bit 2: 5V error (invert for OK)
     rail_3v3_ok: !(statusByte & 0x08),        // Bit 3: 3V3 error (invert for OK)
-    chargeSourceUSB: !!(statusByte & 0x10), // Bit 4: USB charging source
-    chargeSourceUMB: !!(statusByte & 0x20), // Bit 5: UMB charging source
+    chargeSourceUSB: !!(statusByte & 0x20), // Bit 4: USB charging source
+    chargeSourceUMB: !!(statusByte & 0x10), // Bit 5: UMB charging source
   };
 };
 
@@ -176,9 +176,10 @@ export const processSysMessage = (data, realValues, timestamp) => {
 // c*_max: 10-bit (0-1023 counts)
 const countsToVoltage = (counts, bits) => {
   if (counts === null || counts === undefined) return null;
-  const maxCounts = (1 << bits) - 1;
-  const adcRange = 1.2; // 0-1.2V ADC range
-  return (counts / maxCounts) * adcRange;
+  // const maxCounts = (1 << bits) - 1;
+  // const adcRange = 1.2; // 0-1.2V ADC range
+  // return (counts / maxCounts) * adcRange;
+  return counts / 2**bits * 1.2;
 };
 
 // Process EXP1 messages (experiment channels 0-2)
@@ -248,14 +249,14 @@ export const processExpImuMessage = (data, realValues, timestamp) => {
   // BitField scale factor is 1.0, so raw values pass through as-is
   // Values are stored with offset 512 (midpoint) representing zero
   // Subtract offset then divide by 100 to get physical units
-  const offset = 512;
-  const accX = realValues.acc_x_max?.real != null ? (realValues.acc_x_max.real - offset) / 100.0 : null;
-  const accY = realValues.acc_y_max?.real != null ? (realValues.acc_y_max.real - offset) / 100.0 : null;
-  const accZ = realValues.acc_z_max?.real != null ? (realValues.acc_z_max.real - offset) / 100.0 : null;
+  const offset = 16;
+  const accX = realValues.acc_x_max?.real != null ? (realValues.acc_x_max.real / 32.0 - 16.0) : null;
+  const accY = realValues.acc_y_max?.real != null ? (realValues.acc_y_max.real / 32.0 - 16.0) : null;
+  const accZ = realValues.acc_z_max?.real != null ? (realValues.acc_z_max.real / 32.0 - 16.0) : null;
 
-  const magX = realValues.mag_x?.real != null ? (realValues.mag_x.real - offset) / 100.0 : null;
-  const magY = realValues.mag_y?.real != null ? (realValues.mag_y.real - offset) / 100.0 : null;
-  const magZ = realValues.mag_z?.real != null ? (realValues.mag_z.real - offset) / 100.0 : null;
+  const magX = realValues.mag_x?.real != null ? (realValues.mag_x.real / 32.0 - 16.0) : null;
+  const magY = realValues.mag_y?.real != null ? (realValues.mag_y.real / 32.0 - 16.0) : null;
+  const magZ = realValues.mag_z?.real != null ? (realValues.mag_z.real / 32.0 - 16.0) : null;
 
   return {
     systems: {
@@ -340,7 +341,7 @@ export const determineTemperatureStatus = (coldSideTemp, hotSideTemp, isAlreadyC
       (isAlreadyCelsius ? hotSideTemp : hotSideTemp / 1000) : null;
 
     const coldSideTolerance = 1; // ±1°C tolerance
-    const coldSideTarget = 20;
+    const coldSideTarget = 21;
 
     const tooLow = coldSideDegC !== null && coldSideDegC < coldSideTarget - coldSideTolerance;
     const tooHigh = coldSideDegC !== null && coldSideDegC > coldSideTarget + coldSideTolerance;

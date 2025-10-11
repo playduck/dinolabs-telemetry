@@ -6,7 +6,7 @@ import Panel from './shared/Panel';
 import Plot from './Plot';
 
 function ExperimentPanel({ className }) {
-  const scrollback = 100;
+  const scrollback = 256;
 
   const experimentData = useExperimentStatus();
   const timestamps = useTimestampsState();
@@ -41,13 +41,13 @@ function ExperimentPanel({ className }) {
       {
         label: "Min",
         stroke: colors.warrBlue2,
-        points: { show: false },
+        points: { show: true },
         width:1.0,
       },
       {
         label: "Max",
         stroke: colors.warrBlue1,
-        points: { show: false },
+        points: { show: true },
         width:1.0,
       }
     ];
@@ -81,8 +81,8 @@ function ExperimentPanel({ className }) {
         stroke: colors.text,
         grid: { show: true, stroke: colors.grid },
         ticks: { show: true, stroke: colors.text },
-        size: 35,
-        gap: 3,
+        size: 40,
+        gap: 1,
         labelSize: 9,
         font: "9px system-ui",
         values: (_, vals) => {
@@ -126,7 +126,7 @@ function ExperimentPanel({ className }) {
     ];
 
     const newLastData = { ...lastData };
-    let hasUpdate = false;
+    let hasUpdate = true;
 
     plotRefs.forEach(({ ref, channel, name }) => {
       const plotRef = ref();
@@ -146,9 +146,9 @@ function ExperimentPanel({ className }) {
     });
 
     // Update last seen data if any channel changed
-    if (hasUpdate) {
-      setLastChannelData(newLastData);
-    }
+    // if (hasUpdate) {
+    //   setLastChannelData(newLastData);
+    // }
   });
 
   return (

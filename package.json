@@ -22,6 +22,7 @@
     "node-opcua": "^2.156.0",
     "node-opcua-client": "^2.132.0",
     "protobufjs": "^7.4.0",
+    "serialport": "^13.0.0",
     "socket.io": "^4.7.5",
     "solid-icons": "^1.1.0",
     "three": "^0.168.0",

@@ -30,7 +30,7 @@ function TemperaturePanel({ className }) {
   // Helper function to format PWM percentage
   const formatPwm = (pwm) => {
     if (pwm === null || pwm === undefined) return '--';
-    return `${Math.round(pwm)}`;
+    return `${Math.round(pwm / 255.0 * 100.0)}`;
   };
 
   // Decode status byte to get TEC mode information
@@ -120,7 +120,7 @@ function TemperaturePanel({ className }) {
   const updateFanSpeed = () => {
     const tempData = temperatureData();
     const sysData = systemData();
-    const maxSpeed = 360 * 3; // degrees per second at 100% PWM
+    const maxSpeed = 360 * 1.5; // degrees per second at 100% PWM
 
     // Update internal fan speed
     const internalPwm = tempData?.fanPwm;
